@@ -24,10 +24,25 @@
 				left: 0;
 				animation: 3s cubic-out 1 mt-splash-in;
 			}
+			.launcher__mt-background
+			{
+				overflow: hidden;
+				background-color: #2A1846;
+			}
+			/* Artwork fills the window width, centred vertically; top and bottom are cropped on wide windows. */
 			.launcher__mt-splash
 			{
+				position: absolute;
+				left: 0;
+				top: 50%;
 				width: 100%;
-				height: 100%;
+				height: auto;
+				transform: translateY(-50%);
+			}
+			/* The artwork has its own logo, so the text title is hidden. */
+			.launcher .subtitle-title
+			{
+				visibility: hidden;
 			}
 
 			/* Sunny court theme: chunky outlined title and pill-shaped menu buttons. */
@@ -106,7 +121,7 @@
 		<div id="window" data-model="launcher_model">
 			<div class="launcher">
 				<div class="launcher__mt-background">
-					<svg src="mt-splash.svg" class="launcher__mt-splash" />
+					<img src="?/mt-splash" class="launcher__mt-splash" />
 				</div>
 				<div class="launcher__vertical-split">
 					<div class="launcher__title-quadrant">

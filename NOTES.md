@@ -355,3 +355,10 @@ the head-on banner view, not the overhead shot.
 - Implemented as a hook before 0x80033CA8 (mt.us.toml) that sets $at = 0x3FE40000 when `mt_wide_hack()` is on.
   Trial switch only: `MT_WIDE_HACK=1` (release\MarioTennisRecompiled-Debug	ry-16x9-hack.bat). Verified: main
   menu, Play Mode and a match render 16:9 with Stretch.
+
+## Launcher splash art (2026-11-18)
+- The launcher background is now `assets/mt-splash.png` (pixel-art "Tennis" picture supplied by the project owner).
+  The UI only loads images it is given the bytes of (and decodes PNG/DDS, not JPEG), so `ui_launcher.cpp`
+  registers the file as `?/mt-splash` before loading launcher.rml, which shows it with `<img>` at full window
+  width, vertically centred. The text title is hidden (the art has its own logo). lunasvg can't draw embedded
+  `<image>` elements, so the art can't go inside mt-splash.svg (kept, unused).
