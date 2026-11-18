@@ -236,6 +236,7 @@ struct ControlOptionsContext {
     int joystick_deadzone; // 0 to 100
     zelda64::TargetingMode targeting_mode;
     recomp::BackgroundInputMode background_input_mode;
+    recomp::MultiplayerMode multiplayer_mode;
     zelda64::AutosaveMode autosave_mode;
     zelda64::CameraInvertMode camera_invert_mode;
     zelda64::AnalogCamMode analog_cam_mode;
@@ -296,6 +297,17 @@ void zelda64::set_targeting_mode(zelda64::TargetingMode mode) {
     control_options_context.targeting_mode = mode;
     if (general_model_handle) {
         general_model_handle.DirtyVariable("targeting_mode");
+    }
+}
+
+recomp::MultiplayerMode recomp::get_multiplayer_mode() {
+    return control_options_context.multiplayer_mode;
+}
+
+void recomp::set_multiplayer_mode(recomp::MultiplayerMode mode) {
+    control_options_context.multiplayer_mode = mode;
+    if (general_model_handle) {
+        general_model_handle.DirtyVariable("multiplayer_mode");
     }
 }
 
@@ -936,6 +948,7 @@ public:
         constructor.Bind("joystick_deadzone", &control_options_context.joystick_deadzone);
         bind_option(constructor, "targeting_mode", &control_options_context.targeting_mode);
         bind_option(constructor, "background_input_mode", &control_options_context.background_input_mode);
+        bind_option(constructor, "multiplayer_mode", &control_options_context.multiplayer_mode);
         bind_option(constructor, "autosave_mode", &control_options_context.autosave_mode);
         bind_option(constructor, "camera_invert_mode", &control_options_context.camera_invert_mode);
         bind_option(constructor, "analog_cam_mode", &control_options_context.analog_cam_mode);

@@ -698,14 +698,62 @@ index cded4ca..876adc0 100644
          void updateScreen(const VI &newVI, bool fromEarlyPresent);
          void updateMultisampling();
 diff --git a/src/render/rt64_framebuffer_renderer.cpp b/src/render/rt64_framebuffer_renderer.cpp
-index c4cf1bf..be72f26 100644
+index c4cf1bf..6cfb24f 100644
 --- a/src/render/rt64_framebuffer_renderer.cpp
 +++ b/src/render/rt64_framebuffer_renderer.cpp
-@@ -1689,7 +1689,20 @@ namespace RT64 {
+@@ -4,6 +4,8 @@
+ 
+ #include "rt64_framebuffer_renderer.h"
+ 
++#include <cstdlib>
++
+ #include "../include/rt64_extended_gbi.h"
+ 
+ #include "common/rt64_elapsed_timer.h"
+@@ -1618,6 +1620,7 @@ namespace RT64 {
+ 
+                         float invRatioScale = 1.0f / aspectRatioScale;
+                         float horizontalMisalignment = 0.0f;
++                        bool mtWidenScissor = false;
+                         switch (proj.type) {
+                         case Projection::Type::Perspective:
+                         case Projection::Type::Orthographic: {
+@@ -1629,6 +1632,20 @@ namespace RT64 {
+                             if (proj.type == Projection::Type::Perspective) {
+                                 // The call's scissor spans the whole width of the framebuffer pair scissor. The viewport must not be using an extended origin.
+                                 useWideViewport = (viewportOrigin == G_EX_ORIGIN_NONE) && (call.callDesc.scissorRect.ulx <= fbPair.scissorRect.ulx) && (call.callDesc.scissorRect.lrx <= fbPair.scissorRect.lrx);
++                                // Mario Tennis recomp: the game's screen buffers are 384 pixels wide and the VI shows all of
++                                // them. In matches the 3D is drawn with a full-width scissor (0-384) and gets the wide
++                                // viewport, but menus and some scenes draw it with the game's 304-pixel safe-area scissor
++                                // (40-344). Those calls fell back to the 4:3 viewport and were cut at the old screen edge
++                                // in Expand mode (e.g. Toad on Player Select). Draw them like the match 3D: wide viewport,
++                                // scissor widened to the whole buffer.
++                                if (!useWideViewport && (viewportOrigin == G_EX_ORIGIN_NONE) && (p.fbWidth == 384) && (p.aspectRatioTarget > p.aspectRatioSource)) {
++                                    const FixedRect &s = call.callDesc.scissorRect;
++                                    static const bool mtWideOld = std::getenv("MT_WIDE_OLD") != nullptr;
++                                    if (!mtWideOld && (s.ulx == 40 * 4) && (s.lrx == 344 * 4)) {
++                                        useWideViewport = true;
++                                        mtWidenScissor = true;
++                                    }
++                                }
+                             }
+                             else {
+                                 // Always use the wide viewport with orthographic projections.
+@@ -1688,8 +1705,29 @@ namespace RT64 {
+                             break;
                          }
  
-                         triangles.scissor = convertFixedRect(call.callDesc.scissorRect, p.resolutionScale, p.fbWidth, invRatioScale, extOriginPercentage, int32_t(horizontalMisalignment), call.callDesc.scissorLeftOrigin, call.callDesc.scissorRightOrigin);
+-                        triangles.scissor = convertFixedRect(call.callDesc.scissorRect, p.resolutionScale, p.fbWidth, invRatioScale, extOriginPercentage, int32_t(horizontalMisalignment), call.callDesc.scissorLeftOrigin, call.callDesc.scissorRightOrigin);
 -                        
++                        if (mtWidenScissor) {
++                            FixedRect wideScissor = call.callDesc.scissorRect;
++                            wideScissor.ulx = 0;
++                            wideScissor.lrx = int32_t(p.fbWidth) * 4;
++                            triangles.scissor = convertFixedRect(wideScissor, p.resolutionScale, p.fbWidth, invRatioScale, extOriginPercentage, int32_t(horizontalMisalignment), call.callDesc.scissorLeftOrigin, call.callDesc.scissorRightOrigin);
++                        }
++                        else {
++                            triangles.scissor = convertFixedRect(call.callDesc.scissorRect, p.resolutionScale, p.fbWidth, invRatioScale, extOriginPercentage, int32_t(horizontalMisalignment), call.callDesc.scissorLeftOrigin, call.callDesc.scissorRightOrigin);
++                        }
 +
 +                        // Mario Tennis recomp: G_ZS_PRIM draws must produce exactly the prim depth at every pixel.
 +                        // The vertex shader's z = primDepth * w is off by an ulp after the perspective divide on some
@@ -723,22 +771,62 @@ index c4cf1bf..be72f26 100644
                          if (triangles.vertexTestZ) {
                              if ((proj.type == Projection::Type::Perspective) || (proj.type == Projection::Type::Orthographic)) {
                                  instanceDrawCallVector[vertexTestZCallIndex].vertexTestZ.indexCount += call.callDesc.triangleCount * 3;
+diff --git a/src/render/rt64_projection_processor.cpp b/src/render/rt64_projection_processor.cpp
+index 10a01cd..f54aea9 100644
+--- a/src/render/rt64_projection_processor.cpp
++++ b/src/render/rt64_projection_processor.cpp
+@@ -4,6 +4,8 @@
+ 
+ #include "rt64_projection_processor.h"
+ 
++#include <cstdlib>
++
+ #include "common/rt64_math.h"
+ #include "hle/rt64_workload_queue.h"
+ 
+@@ -72,6 +74,16 @@ namespace RT64 {
+                     bool coversWholeWidth = (proj.scissorRect.ulx <= fbPair.scissorRect.ulx) && (proj.scissorRect.lrx >= fbPair.scissorRect.lrx);
+                     bool horizontalRatio = (proj.scissorRect.width(true, true) > proj.scissorRect.height(true, true));
+                     stretchAspectRatio = (viewportOrigin == G_EX_ORIGIN_NONE) && coversWholeWidth && horizontalRatio;
++
++                    // Mario Tennis recomp: 3D drawn with the game's 304-pixel safe-area scissor (x 40-344) on its
++                    // 384-pixel screen buffers is drawn with the wide viewport in Expand mode (see
++                    // rt64_framebuffer_renderer.cpp), so its projection must be widened the same way.
++                    static const bool mtWideOld = std::getenv("MT_WIDE_OLD") != nullptr;
++                    if (!stretchAspectRatio && !mtWideOld && (viewportOrigin == G_EX_ORIGIN_NONE) && (fbPair.colorImage.width == 384) &&
++                        (proj.scissorRect.ulx == 40 * 4) && (proj.scissorRect.lrx == 344 * 4))
++                    {
++                        stretchAspectRatio = true;
++                    }
+                 }
+             }
+             else {
 diff --git a/src/render/rt64_vi_renderer.cpp b/src/render/rt64_vi_renderer.cpp
-index d597d75..e946e0e 100644
+index d597d75..b8ecd4a 100644
 --- a/src/render/rt64_vi_renderer.cpp
 +++ b/src/render/rt64_vi_renderer.cpp
-@@ -10,6 +10,10 @@
+@@ -4,12 +4,20 @@
+ 
+ #include "rt64_vi_renderer.h"
+ 
++#include <algorithm>
++#include <cmath>
++
+ #include "shared/rt64_hlsl.h"
+ #include "shared/rt64_video_interface.h"
+ 
  namespace RT64 {
      // VIRenderer
  
 +    bool VIRenderer::stretchToWindow = false;
 +    std::atomic<float> VIRenderer::cropLeft{ 0.0f };
++    std::atomic<bool> VIRenderer::pillarbox{ false };
 +    std::atomic<float> VIRenderer::cropRight{ 1.0f };
 +
      VIRenderer::VIRenderer() { }
  
      VIRenderer::~VIRenderer() { }
-@@ -28,6 +32,11 @@ namespace RT64 {
+@@ -28,6 +36,11 @@ namespace RT64 {
          const hlslpp::float2 windowCenter = windowSize / 2;
          const hlslpp::float2 relativeCoordinate = { coordinate.x - hdCenter.x, coordinate.y - hdCenter.y };
  
@@ -750,7 +838,7 @@ index d597d75..e946e0e 100644
          // Window is wider than virtual HD TV, we do pillarboxing.
          float relativeScale;
          if ((windowSize.x / windowSize.y) > (hdSize.x / hdSize.y)) {
-@@ -70,7 +79,7 @@ namespace RT64 {
+@@ -70,7 +83,7 @@ namespace RT64 {
          RenderViewport viewport;
          RenderRect scissor;
          hlslpp::float2 fbHdRegion;
@@ -759,7 +847,7 @@ index d597d75..e946e0e 100644
          p.commandList->setViewports(viewport);
          p.commandList->setScissors(scissor);
  
-@@ -87,7 +96,7 @@ namespace RT64 {
+@@ -87,7 +100,7 @@ namespace RT64 {
          p.commandList->drawInstanced(3, 1, 0, 0);
      }
  
@@ -768,7 +856,7 @@ index d597d75..e946e0e 100644
          // We define three different coordinate spaces to work with to translate the VI parameters into the Window.
          //
          // VideoSD: This corresponds to the SD TV Scanline space, which is what the VI natively works on.
-@@ -103,7 +112,7 @@ namespace RT64 {
+@@ -103,7 +116,7 @@ namespace RT64 {
          // specified by the VI.
          const hlslpp::float2 sdSize = { float(VI::Width), float(VI::Height) };
          const hlslpp::float2 hdSize = computeHDSize(sdSize, resolutionScale, downsamplingScale);
@@ -777,7 +865,7 @@ index d597d75..e946e0e 100644
          const hlslpp::uint2 fbSize = vi.fbSize();
          const hlslpp::float2 fbSdRegion = { float(fbSize.x), float(fbSize.y) };
          fbHdRegion = computeHDSize(fbSdRegion, resolutionScale, downsamplingScale);
-@@ -124,5 +133,20 @@ namespace RT64 {
+@@ -124,5 +137,34 @@ namespace RT64 {
  
          viewport = RenderViewport(topLeftViewport.x, topLeftViewport.y, bottomRightViewport.x - topLeftViewport.x, bottomRightViewport.y - topLeftViewport.y);
          scissor = RenderRect(lround(topLeftScissor.x), lround(topLeftScissor.y), lround(bottomRightScissor.x), lround(bottomRightScissor.y));
@@ -790,18 +878,32 @@ index d597d75..e946e0e 100644
 +            viewport.x -= left * width;
 +            viewport.width = width;
 +        }
++
++        // Mario Tennis recomp: pillarbox the picture to its centred 4:3 part.
++        if (pillarbox.load()) {
++            const float width43 = viewport.height * 4.0f / 3.0f;
++            if (width43 < viewport.width) {
++                const float centre = viewport.x + viewport.width / 2.0f;
++                scissor.left = std::max(scissor.left, int32_t(std::lround(centre - width43 / 2.0f)));
++                scissor.right = std::min(scissor.right, int32_t(std::lround(centre + width43 / 2.0f)));
++            }
++        }
      }
 -};
 \ No newline at end of file
 +};
 +
 +// Mario Tennis recomp: called by the game glue (src/game/mt_dlfix.cpp) once per graphics task.
++extern "C" void rt64_set_pillarbox(bool enabled) {
++    RT64::VIRenderer::pillarbox.store(enabled);
++}
++
 +extern "C" void rt64_set_horizontal_crop(float left, float right) {
 +    RT64::VIRenderer::cropLeft.store(left);
 +    RT64::VIRenderer::cropRight.store(right);
 +}
 diff --git a/src/render/rt64_vi_renderer.h b/src/render/rt64_vi_renderer.h
-index 9e83151..b383396 100644
+index 9e83151..1071039 100644
 --- a/src/render/rt64_vi_renderer.h
 +++ b/src/render/rt64_vi_renderer.h
 @@ -4,6 +4,8 @@
@@ -813,7 +915,7 @@ index 9e83151..b383396 100644
  #include "common/rt64_user_configuration.h"
  #include "hle/rt64_vi.h"
  
-@@ -28,11 +30,22 @@ namespace RT64 {
+@@ -28,11 +30,25 @@ namespace RT64 {
              uint32_t textureHeight = 0;
              UserConfiguration::Filtering filtering = UserConfiguration::Filtering::Linear;
              const VI *vi = nullptr;
@@ -833,6 +935,9 @@ index 9e83151..b383396 100644
 +        // (0..1 of the framebuffer width) is shown, stretched across the window. Set per frame by
 +        // the game glue through rt64_set_horizontal_crop().
 +        static std::atomic<float> cropLeft, cropRight;
++        // Mario Tennis recomp: when set, only the centred 4:3 part of the picture is shown (side bars).
++        // Set per frame by the game glue through rt64_set_pillarbox() (the opening flyover).
++        static std::atomic<bool> pillarbox;
 +
 +        static void getViewportAndScissor(const RenderSwapChain *swapChain, const VI &vi, hlslpp::float2 resolutionScale, uint32_t downsamplingScale, RenderViewport &viewport, RenderRect &scissor, hlslpp::float2 &fbHdRegion, uint32_t targetWidth = 0, uint32_t targetHeight = 0);
      };

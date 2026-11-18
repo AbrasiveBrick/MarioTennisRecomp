@@ -85,14 +85,24 @@ bool recomp::get_n64_input(int controller_num, uint16_t* buttons_out, float* x_o
     float cur_x = 0.0f;
     float cur_y = 0.0f;
     
-    if (controller_num != 0) {
+    // Mario Tennis recomp: local multiplayer. recomp::mt_port_source decides which controller (or all,
+    // or none) and whether the keyboard drive each N64 port, depending on the Local Multiplayer setting.
+    const recomp::PortSource source = recomp::mt_port_source(controller_num);
+    if (!source.present) {
         return false;
     }
+    const bool keyboard = source.keyboard;
+    struct FilterScope {
+        FilterScope(int index) { recomp::set_input_controller_filter(index); }
+        ~FilterScope() { recomp::set_input_controller_filter(-1); }
+    } filter_scope{ source.controller };
 
     if (!recomp::game_input_disabled()) {
         for (size_t i = 0; i < n64_button_values.size(); i++) {
             size_t input_index = (size_t)GameInput::N64_BUTTON_START + i;
-            cur_buttons |= recomp::get_input_digital(keyboard_input_mappings[input_index]) ? n64_button_values[i] : 0;
+            if (keyboard) {
+                cur_buttons |= recomp::get_input_digital(keyboard_input_mappings[input_index]) ? n64_button_values[i] : 0;
+            }
             cur_buttons |= recomp::get_input_digital(controller_input_mappings[input_index]) ? n64_button_values[i] : 0;
         }
 
@@ -106,16 +116,22 @@ bool recomp::get_n64_input(int controller_num, uint16_t* buttons_out, float* x_o
 
         recomp::apply_joystick_deadzone(joystick_x, joystick_y, &joystick_x, &joystick_y);
 
-        cur_x = recomp::get_input_analog(keyboard_input_mappings[(size_t)GameInput::X_AXIS_POS])
-                - recomp::get_input_analog(keyboard_input_mappings[(size_t)GameInput::X_AXIS_NEG]) + joystick_x;
-
-        cur_y = recomp::get_input_analog(keyboard_input_mappings[(size_t)GameInput::Y_AXIS_POS])
-                - recomp::get_input_analog(keyboard_input_mappings[(size_t)GameInput::Y_AXIS_NEG]) + joystick_y;
+        cur_x = joystick_x;
+        cur_y = joystick_y;
+        if (keyboard) {
+            cur_x += recomp::get_input_analog(keyboard_input_mappings[(size_t)GameInput::X_AXIS_POS])
+                   - recomp::get_input_analog(keyboard_input_mappings[(size_t)GameInput::X_AXIS_NEG]);
+            cur_y += recomp::get_input_analog(keyboard_input_mappings[(size_t)GameInput::Y_AXIS_POS])
+                   - recomp::get_input_analog(keyboard_input_mappings[(size_t)GameInput::Y_AXIS_NEG]);
+        }
     }
 
     // Testing aid: MT_INPUT="t:BUTTONS:dur;..." presses buttons (A B Z START L R DU DD DL DR CU CD CL
     // CR, stick UP DOWN LEFT RIGHT; join with '+') at t seconds after the first poll, for dur seconds.
-    static const char* script = std::getenv("MT_INPUT");
+    // MT_INPUT_P2 does the same for player 2 (see MT_PLAYERS in input.cpp).
+    static const char* script1 = std::getenv("MT_INPUT");
+    static const char* script2 = std::getenv("MT_INPUT_P2");
+    const char* script = (controller_num == 0) ? script1 : (controller_num == 1) ? script2 : nullptr;
     if (script != nullptr) {
         static const auto start = std::chrono::steady_clock::now();
         const float now = std::chrono::duration<float>(std::chrono::steady_clock::now() - start).count();

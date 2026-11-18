@@ -251,6 +251,32 @@ task from mt_fixup_gfx_task). The camera block itself is untouched, so screen-sp
 clay-court demo: the Bob-omb row on the sideline now runs to the window edge (the baseline dropped it
 outside the 4:3 area). MT_PROF late frames 16 vs 17 (baseline) over 20-130 s of demos.
 
+### Menu 3D cut at the 4:3 edge (2026-11-12, GitHub issues #4/#5)
+The screen buffers are 384 wide and the VI shows all 384 columns; the game draws inside its 304-pixel safe area
+(x 40-344). Match 3D uses a full-width scissor (0-384) and gets RT64's wide viewport, but menu 3D (Toad on
+Player/Character Select, Play Mode) uses the 40-344 scissor, so RT64 kept it on the 4:3 viewport and neither
+widened its projection nor its scissor: models were sliced at the old edge. Fix (RT64 patch,
+`rt64_framebuffer_renderer.cpp` + `rt64_projection_processor.cpp`): perspective calls on a 384-wide buffer whose
+scissor is exactly 40-344 get the wide viewport, a widened projection and a full-buffer scissor in Expand mode.
+`MT_WIDE_OLD=1` restores the old behaviour for comparison. The menu backgrounds are flat 4:3 pictures (drawn
+as 2D tiles in 40-344), so they keep side bars; 3D models now extend into them. Matches were unaffected
+(already full-width).
+
+### Opening flyover shown in 4:3 (2026-11-12)
+In the intro the camera flies to the airship, through its hull and down onto the stadium. In Expand mode the
+overhead stadium shot showed the airship's underside and red band at the sides (real geometry just outside the
+4:3 frame). The whole flyover is now pillarboxed: `mt_widescreen_flyover_check` (`src/game/mt_widescreen.cpp`,
+called per gfx task) reads the camera block's view matrix (0x80062B88 +0x40). It switches on at the airship
+approach (camera at the airship's position, y about -1500, looking slightly up), stays on while the camera
+follows the flyover path (head-on banner, drop through the hull, overhead shot, descent centred on the court),
+and switches off when the camera turns to follow Mario at court level. RT64 patch: `VIRenderer::pillarbox`
+(`rt64_set_pillarbox`) narrows the presenter's scissor to the centred 4:3 part. Menus and matches never match the
+approach, so they are unaffected. Note: that camera block does follow the picture; the "no rotation" phase is
+the head-on banner view, not the overhead shot.
+- Fix (2026-11-18): skipping the intro with Start left the 4:3 crop on, because the title/menu camera still
+  matched the descent test, so menu 3D (Toad) was cut at the 4:3 edge again. The crop now also ends on any
+  narrow-layout frame (title, menus; `narrow_frame` from mt_dlfix.cpp) and after 16 s at most.
+
 ## Graphics API option and Slang shaders (2026-11-08)
 - Settings → Graphics → **Graphics API**: DirectX 12 (default on Windows) or Vulkan; takes effect on the next
   start. Old "Auto"/"Metal" values load as the platform default (`src/game/config.cpp`). If the chosen API can't
@@ -274,3 +300,58 @@ outside the 4:3 area). MT_PROF late frames 16 vs 17 (baseline) over 20-130 s of 
 - Diagnostics: `MT_SHADER=<preset>` overrides the menu; `MT_SHADER_TEST=1` builds the chain without drawing,
   `=2` skips librashader. Crash reports now name the module and print the call stack (dbghelp; librashader's
   symbols need its .pdb renamed to `librashader_capi.pdb`).
+
+## Local multiplayer (2026-11-18, GitHub issue #1)
+- Settings → General → **Local Multiplayer** (On by default; general.json `multiplayer_mode`). On: player 1 = keyboard
+  + first controller, players 2-4 = the next controllers in connection order (SDL instance ID; `cur_controllers` is
+  now sorted). Off: every controller drives player 1 (the old behaviour).
+- **On + Keyboard** (`OnKeyboard`): controllers are players 1..n in connection order and the keyboard is player n+1
+  (one controller: controller = P1, keyboard = P2; no controller: keyboard = P1). `recomp::mt_port_source(port)`
+  holds the whole port mapping (present / keyboard / which controller) for all three modes.
+- Bug found in testing: the controller count came from `cur_controllers`, which is only rebuilt when the game polls
+  input; the game asks which ports are connected (osContInit) before its first poll, so it saw 0 pads and refused
+  2-player modes ("Not enough controllers"). `get_connected_controller_count` now counts SDL's opened controllers
+  (`controller_states`). Log line on change: `[mt] local multiplayer: N controller(s), mode M`. Verified with a real
+  DualSense + keyboard in On + Keyboard: 2 Players opens Player Select and the keyboard moves the 2P cursor.
+- The game re-checks controllers when a multiplayer mode is chosen ("Not enough controllers for a two-player game"
+  with only the keyboard), so controllers can be connected while it runs.
+- `src/game/input.cpp`: `mt_player_present(port)` decides which N64 ports report a controller (also used by
+  `get_connected_device_info`); a thread-local controller filter (`set_input_controller_filter`) makes the shared
+  binding tables read one controller per port; rumble is tracked per port and sent to that player's controller.
+  `src/game/controls.cpp` `get_n64_input` serves ports 0-3 (keyboard only on port 0).
+- Runtime fix (`patches/n64modernruntime-mario-tennis.patch`): `__osContGetInitData` wrote `*pattern = 1 << n`
+  instead of `|=`, so only the last connected port was reported.
+- Testing aids: `MT_PLAYERS=n` reports n players without extra controllers; `MT_INPUT_P2` scripts player 2 like
+  `MT_INPUT`. Verified: with MT_PLAYERS=2 the main menu's 2 Players mode opens Player Select with 1P and 2P cursors,
+  and MT_INPUT_P2 moves only the 2P cursor. Not yet verified with two physical controllers.
+- Known limit: a controller that reconnects gets a new, later slot. Duplicate devices (e.g. Steam Input exposing a
+  virtual copy of a pad) would count as two players; Local Multiplayer Off restores the merged behaviour.
+
+## Expand = game widescreen hack (2026-11-18)
+- Aspect Ratio **Expand** no longer uses RT64's own widening. The game itself renders a wider view: a hook before
+  0x80033CAC (mt.us.toml) replaces the aspect func_80033C34 builds the 3D camera with (0x3FAB6DB7, 1.34; the
+  widescreen GameShark code 81033CA6 3FE4 sets 16:9) by `mt_wide_aspect_bits()` = original x window aspect / (4:3)
+  (src/game/mt_widescreen.cpp). RT64 gets AspectRatio Original with `VIRenderer::stretchToWindow`
+  (rt64_render_context.cpp), so the picture fills the window; menus use Stretch's narrow-layout crop.
+- The game culls for the wider view itself, so the old cull-factor hooks (mt_cull_x_scale) and RT64's menu-3D
+  widening only apply with `MT_WIDE_RT64=1`, which restores RT64's Expand for comparison.
+- The intro flyover 4:3 crop (rt64_set_pillarbox) still applies in Expand.
+- Verified at 16:9 (intro, menus, match) and 21:9 (menu, match). 2D (HUD, menus) is stretched by window/(4:3).
+- Known limit: menu 3D (Toad, players on Character Select) does not use func_80033C34's camera, so it is stretched
+  with the 2D (mild at 16:9, obvious at 21:9).
+
+## Bonus characters (2026-11-18)
+- Donkey Kong Jr. and Shy Guy are normally unlocked by winning Star Cup tournaments. Their unlock bits are byte
+  0x800653C8 (bit 0 DK Jr., bit 1 Shy Guy; GameShark "Have D.K. Jr. & Shy Guy" 800653C8 0003).
+  `src/game/mt_bonus.cpp` sets both bits every graphics task, so they are always selectable (and saved).
+  Verified: Character Select shows both in place of the two star slots.
+- Launcher version label (`version_string` in src/main/main.cpp) bumped from 0.1.0 to 0.3.0.
+
+## 16:9 game hack trial (2026-11-18)
+- The widescreen GameShark code `81033CA6 3FE4` changes the aspect func_80033C34 builds the 3D camera with:
+  lui/ori at 0x80033CA4/A8 load 0x3FAB6DB7 (1.34); the code makes it 0x3FE46DB7 (1.78). Anamorphic: the game
+  renders a 16:9 view (and culls for it) into its 4:3 picture; Aspect Ratio Stretch spreads it over a 16:9
+  window. 2D (HUD, menu text and backgrounds) is stretched 33%.
+- Implemented as a hook before 0x80033CA8 (mt.us.toml) that sets $at = 0x3FE40000 when `mt_wide_hack()` is on.
+  Trial switch only: `MT_WIDE_HACK=1` (release\MarioTennisRecompiled-Debug	ry-16x9-hack.bat). Verified: main
+  menu, Play Mode and a match render 16:9 with Stretch.

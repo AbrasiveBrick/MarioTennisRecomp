@@ -2820,8 +2820,9 @@ static const MtLiveHook mt_live_hooks[] = {
     { "func_800326FC", 0x80032784 }, // event 4
     { "func_800346A0", 0x8003473C }, // event 5
     { "func_800346A0", 0x8003475C }, // event 6
-    { "func_80031D60", 0x80031D90 }, // event 7
-    { "func_seg78_80100010", 0x80100018 }, // event 8
+    { "func_80033C34", 0x80033CAC }, // event 7
+    { "func_80031D60", 0x80031D90 }, // event 8
+    { "func_seg78_80100010", 0x80100018 }, // event 9
 };
 
 // Native implementations, by the name the game's symbol has.
@@ -2983,8 +2984,9 @@ static void mt_live_run_hook(uint8_t* rdram, recomp_context* ctx, uint32_t index
         case 4: { void mt_fixup_gfx_task(uint8_t*, uint32_t); void mt_dump_gfx_task(uint8_t*, uint32_t); mt_fixup_gfx_task(rdram, (uint32_t)ctx->r4); mt_dump_gfx_task(rdram, (uint32_t)ctx->r4); } break;
         case 5: { float mt_cull_x_scale(void); ctx->f0.fl *= mt_cull_x_scale(); } break;
         case 6: { float mt_cull_x_scale(void); ctx->f0.fl *= mt_cull_x_scale(); } break;
-        case 7: { void mt_spin_yield(uint8_t* rdram, uint32_t id); mt_spin_yield(rdram, 0); } break;
+        case 7: { uint32_t mt_wide_aspect_bits(uint32_t); ctx->r1 = (int32_t)mt_wide_aspect_bits((uint32_t)ctx->r1); } break;
         case 8: { void mt_spin_yield(uint8_t* rdram, uint32_t id); mt_spin_yield(rdram, 0); } break;
+        case 9: { void mt_spin_yield(uint8_t* rdram, uint32_t id); mt_spin_yield(rdram, 0); } break;
     }
 }
 }

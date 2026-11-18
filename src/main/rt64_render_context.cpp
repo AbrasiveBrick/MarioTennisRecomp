@@ -74,12 +74,20 @@ RT64::UserConfiguration::Antialiasing compute_max_supported_aa(RT64::RenderSampl
     return RT64::UserConfiguration::Antialiasing::None;
 }
 
+bool mt_use_rt64_expand() {
+    static const bool on = std::getenv("MT_WIDE_RT64") != nullptr;
+    return on;
+}
+
 RT64::UserConfiguration::AspectRatio to_rt64(ultramodern::renderer::AspectRatio option) {
     switch (option) {
         case ultramodern::renderer::AspectRatio::Original:
             return RT64::UserConfiguration::AspectRatio::Original;
         case ultramodern::renderer::AspectRatio::Expand:
-            return RT64::UserConfiguration::AspectRatio::Expand;
+            // Mario Tennis recomp: Expand makes the game itself render a wider view (the 16:9 "game hack",
+            // matched to the window; src/game/mt_widescreen.cpp) into its normal picture, which is then
+            // stretched to the window. MT_WIDE_RT64=1 restores RT64's own widening instead.
+            return mt_use_rt64_expand() ? RT64::UserConfiguration::AspectRatio::Expand : RT64::UserConfiguration::AspectRatio::Original;
         case ultramodern::renderer::AspectRatio::Manual:
             return RT64::UserConfiguration::AspectRatio::Manual;
         case ultramodern::renderer::AspectRatio::Stretch:
@@ -192,7 +200,8 @@ void set_application_user_config(RT64::Application* application, const ultramode
     }
 
     application->userConfig.aspectRatio = to_rt64(config.ar_option);
-    RT64::VIRenderer::stretchToWindow = (config.ar_option == ultramodern::renderer::AspectRatio::Stretch);
+    RT64::VIRenderer::stretchToWindow = (config.ar_option == ultramodern::renderer::AspectRatio::Stretch) ||
+        ((config.ar_option == ultramodern::renderer::AspectRatio::Expand) && !mt_use_rt64_expand());
     application->userConfig.antialiasing = to_rt64(config.msaa_option);
     application->userConfig.refreshRate = to_rt64(config.rr_option);
     application->userConfig.refreshRateTarget = config.rr_manual_value;

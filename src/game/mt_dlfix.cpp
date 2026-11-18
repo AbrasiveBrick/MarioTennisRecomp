@@ -77,10 +77,13 @@ namespace {
 
 void mt_prof_gfx_task();
 void mt_widescreen_update();
+extern "C" void mt_bonus_characters(uint8_t* rdram);
+void mt_widescreen_flyover_check(uint8_t* rdram, bool narrow_frame);
 
 extern "C" void mt_fixup_gfx_task(uint8_t* rdram, uint32_t task) {
     mt_prof_gfx_task();
     mt_widescreen_update();
+    mt_bonus_characters(rdram);
     // Pass 1: does this frame use the narrow layout?
     bool narrow_frame = false;
     walk(rdram, task, [&](uint32_t, uint32_t w0, uint32_t w1, auto&) {
@@ -90,6 +93,7 @@ extern "C" void mt_fixup_gfx_task(uint8_t* rdram, uint32_t task) {
     // In Stretch mode the presenter shows only the narrow layout's columns (40..344 of 384), so
     // menus fill the window too; other frames show the whole picture. No effect in other modes.
     rt64_set_horizontal_crop(narrow_frame ? 40.0f / 384.0f : 0.0f, narrow_frame ? 344.0f / 384.0f : 1.0f);
+    mt_widescreen_flyover_check(rdram, narrow_frame);
     if (!narrow_frame) return;
 
     // Pass 2: move the layout and splice in the margin clear.

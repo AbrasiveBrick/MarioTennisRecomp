@@ -1,4 +1,8 @@
+#include <algorithm>
+#include <array>
 #include <atomic>
+#include <cstdlib>
+#include <unordered_map>
 #include <mutex>
 #include <condition_variable>
 #include <thread>
@@ -42,9 +46,15 @@ static struct {
     std::array<float, 2> pending_rotation_delta{};
     std::array<float, 2> pending_mouse_delta{};
 
-    float cur_rumble;
-    bool rumble_active;
+    // Per N64 controller port (Mario Tennis recomp: local multiplayer).
+    std::array<float, 4> cur_rumble{};
+    std::array<bool, 4> rumble_active{};
 } InputState;
+
+// Mario Tennis recomp: when >= 0, controller reads on this thread only look at that controller
+// (index into cur_controllers, which is kept in connection order). Used to give each player their
+// own controller.
+static thread_local int controller_filter = -1;
 
 static struct {
     std::list<std::filesystem::path> files_dropped;
@@ -491,6 +501,11 @@ void recomp::poll_inputs() {
                 InputState.cur_controllers.push_back(controller);
             }
         }
+        // Keep controllers in connection order (instance IDs increase with each connection) so each
+        // player keeps the same controller.
+        std::sort(InputState.cur_controllers.begin(), InputState.cur_controllers.end(), [](SDL_GameController* a, SDL_GameController* b) {
+            return SDL_JoystickInstanceID(SDL_GameControllerGetJoystick(a)) < SDL_JoystickInstanceID(SDL_GameControllerGetJoystick(b));
+        });
     }
 
     // Read the deltas while resetting them to zero.
@@ -511,18 +526,78 @@ void recomp::poll_inputs() {
 }
 
 void recomp::set_rumble(int controller_num, bool on) {
-    if (controller_num == 0) {
-        InputState.rumble_active = on;
+    if (controller_num >= 0 && controller_num < 4) {
+        InputState.rumble_active[controller_num] = on;
     }
 }
 
+size_t recomp::get_connected_controller_count() {
+    // Count the opened controllers directly: cur_controllers is only rebuilt when the game polls
+    // input, and the game asks which controllers are present (osContInit) before its first poll.
+    size_t count = 0;
+    for (const auto& [id, state] : InputState.controller_states) {
+        (void)id;
+        if (state.controller != nullptr) count++;
+    }
+    return count;
+}
+
+void recomp::set_input_controller_filter(int index) {
+    controller_filter = index;
+}
+
+// Player 1 is always present. With local multiplayer on, players 2-4 are present when that many
+// controllers are connected (plus one more for the keyboard in On + Keyboard mode). Testing aid:
+// MT_PLAYERS=n reports n players regardless of controllers (player 2 can then be driven with
+// MT_INPUT_P2).
+recomp::PortSource recomp::mt_port_source(int port) {
+    PortSource src{};
+    if (port < 0 || port > 3) return src;
+    static const int forced_players = std::getenv("MT_PLAYERS") ? std::atoi(std::getenv("MT_PLAYERS")) : 0;
+    const int controllers = (int)recomp::get_connected_controller_count();
+    {
+        static std::atomic<int> last_logged{ -1 };
+        const int key = controllers * 16 + (int)recomp::get_multiplayer_mode();
+        if (last_logged.exchange(key) != key) {
+            fprintf(stderr, "[mt] local multiplayer: %d controller(s), mode %d (0 On, 1 On + Keyboard, 2 Off)\n",
+                controllers, (int)recomp::get_multiplayer_mode());
+        }
+    }
+    switch (recomp::get_multiplayer_mode()) {
+    case recomp::MultiplayerMode::Off:
+    default:
+        src.present = (port == 0);
+        src.keyboard = (port == 0);
+        src.controller = -1;
+        break;
+    case recomp::MultiplayerMode::On:
+        src.present = (port == 0) || (port < controllers);
+        src.keyboard = (port == 0);
+        src.controller = (port < controllers) ? port : -2;
+        break;
+    case recomp::MultiplayerMode::OnKeyboard:
+        // Controllers first, then the keyboard as the next player.
+        src.present = (port <= controllers);
+        src.keyboard = (port == controllers);
+        src.controller = (port < controllers) ? port : -2;
+        break;
+    }
+    if (forced_players > 0 && port < forced_players) {
+        src.present = true;
+    }
+    return src;
+}
+
+bool recomp::mt_player_present(int controller_num) {
+    return recomp::mt_port_source(controller_num).present;
+}
+
 ultramodern::input::connected_device_info_t recomp::get_connected_device_info(int controller_num) {
-    switch (controller_num) {
-        case 0:
-            return ultramodern::input::connected_device_info_t {
-                .connected_device = ultramodern::input::Device::Controller,
-                .connected_pak = ultramodern::input::Pak::RumblePak,
-            };
+    if (recomp::mt_player_present(controller_num)) {
+        return ultramodern::input::connected_device_info_t {
+            .connected_device = ultramodern::input::Device::Controller,
+            .connected_pak = ultramodern::input::Pak::RumblePak,
+        };
     }
 
     return ultramodern::input::connected_device_info_t {
@@ -539,65 +614,82 @@ static float smoothstep(float from, float to, float amount) {
 // Update rumble to attempt to mimic the way n64 rumble ramps up and falls off
 void recomp::update_rumble() {
     // Note: values are not accurate! just approximations based on feel
-    if (InputState.rumble_active) {
-        InputState.cur_rumble += 0.17f;
-        if (InputState.cur_rumble > 1) InputState.cur_rumble = 1;
-    } else {
-        InputState.cur_rumble *= 0.92f;
-        InputState.cur_rumble -= 0.01f;
-        if (InputState.cur_rumble < 0) InputState.cur_rumble = 0;
+    std::array<uint16_t, 4> strength{};
+    for (int p = 0; p < 4; p++) {
+        float& cur = InputState.cur_rumble[p];
+        if (InputState.rumble_active[p]) {
+            cur += 0.17f;
+            if (cur > 1) cur = 1;
+        } else {
+            cur *= 0.92f;
+            cur -= 0.01f;
+            if (cur < 0) cur = 0;
+        }
+        float smooth_rumble = smoothstep(0, 1, cur);
+        uint16_t value = smooth_rumble * (recomp::get_rumble_strength() * 0xFFFF / 100);
+        // 32 steps are plenty for a motor and cut the number of writes during ramps.
+        if (value != 0) value = (value | 0x7FF);
+        strength[p] = value;
     }
-    float smooth_rumble = smoothstep(0, 1, InputState.cur_rumble);
-
-    uint16_t rumble_strength = smooth_rumble * (recomp::get_rumble_strength() * 0xFFFF / 100);
-    // 32 steps are plenty for a motor and cut the number of writes during ramps.
-    if (rumble_strength != 0) rumble_strength = (rumble_strength | 0x7FF);
 
     // Mario Tennis recomp: this runs on the VI thread, which paces the game's frames. Sending rumble
     // to the controller can take milliseconds (wireless pads, and it waits on the controller list
-    // lock held by input polling), which made every rumbling shot drop a frame. The value is handed
-    // to a worker thread instead, which writes only the latest value and only when it changed.
+    // lock held by input polling), which made every rumbling shot drop a frame. The values are handed
+    // to a worker thread instead, which writes only the latest value per controller and only when it
+    // changed (plus a periodic resend). With local multiplayer on, controller N rumbles for player
+    // N+1; otherwise every controller rumbles for player 1.
     static std::mutex rumble_mutex;
     static std::condition_variable rumble_cv;
-    static uint32_t rumble_pending = 0xFFFFFFFF;   // 0xFFFFFFFF: nothing new to send
+    static std::array<uint16_t, 4> rumble_values{};
+    static bool rumble_pending = false;
+    static bool rumble_resend = false;
     static std::once_flag rumble_thread_started;
     std::call_once(rumble_thread_started, [] {
         std::thread([] {
-            uint16_t sent = 0;
-            bool any_sent = false;
+            std::unordered_map<SDL_GameController*, uint16_t> sent;
             while (true) {
-                uint16_t value;
+                std::array<uint16_t, 4> values;
+                bool resend;
                 {
                     std::unique_lock lock{ rumble_mutex };
-                    rumble_cv.wait(lock, [] { return rumble_pending != 0xFFFFFFFF; });
-                    value = (uint16_t)rumble_pending;
-                    rumble_pending = 0xFFFFFFFF;
+                    rumble_cv.wait(lock, [] { return rumble_pending; });
+                    values = rumble_values;
+                    resend = rumble_resend;
+                    rumble_pending = false;
+                    rumble_resend = false;
                 }
-                if (any_sent && value == sent) continue;
+                if (resend) sent.clear();
+                const bool per_player = recomp::get_multiplayer_mode() != recomp::MultiplayerMode::Off;
                 uint32_t duration = 1000000; // Dummy duration value that lasts long enough to matter as the game will reset rumble on its own.
                 {
                     auto t0 = std::chrono::steady_clock::now();
                     std::lock_guard lock{ InputState.cur_controllers_mutex };
-                    for (const auto& controller : InputState.cur_controllers) {
+                    for (size_t i = 0; i < InputState.cur_controllers.size(); i++) {
+                        SDL_GameController* controller = InputState.cur_controllers[i];
+                        const uint16_t value = per_player ? (i < 4 ? values[i] : 0) : values[0];
+                        auto it = sent.find(controller);
+                        if (it != sent.end() && it->second == value) continue;
                         SDL_GameControllerRumble(controller, 0, value, duration);
+                        sent[controller] = value;
                     }
                     mt_prof_span("SDL rumble write (worker, holding controller lock)", std::chrono::duration<double, std::milli>(std::chrono::steady_clock::now() - t0).count(), 0.5);
                 }
-                sent = value;
-                any_sent = true;
             }
         }).detach();
     });
 
-    static uint16_t last_queued = 0;
+    static std::array<uint16_t, 4> last_queued{};
     static int refresh = 0;
     // Queue on change, and re-send about once a second so newly connected controllers pick it up.
-    if (rumble_strength != last_queued || ++refresh >= 60) {
-        refresh = 0;
-        last_queued = rumble_strength;
+    const bool resend = (++refresh >= 60);
+    if (strength != last_queued || resend) {
+        if (resend) refresh = 0;
+        last_queued = strength;
         {
             std::lock_guard lock{ rumble_mutex };
-            rumble_pending = rumble_strength;
+            rumble_values = strength;
+            rumble_pending = true;
+            rumble_resend = rumble_resend || resend;
         }
         rumble_cv.notify_one();
     }
@@ -609,8 +701,9 @@ bool controller_button_state(int32_t input_id) {
         bool ret = false;
         {
             std::lock_guard lock{ InputState.cur_controllers_mutex };
-            for (const auto& controller : InputState.cur_controllers) {
-                ret |= SDL_GameControllerGetButton(controller, button);
+            for (size_t i = 0; i < InputState.cur_controllers.size(); i++) {
+                if (controller_filter != -1 && controller_filter != (int)i) continue;
+                ret |= SDL_GameControllerGetButton(InputState.cur_controllers[i], button);
             }
         }
 
@@ -629,7 +722,9 @@ float controller_axis_state(int32_t input_id, bool allow_suppression) {
 
         {
             std::lock_guard lock{ InputState.cur_controllers_mutex };
-            for (const auto& controller : InputState.cur_controllers) {
+            for (size_t i = 0; i < InputState.cur_controllers.size(); i++) {
+                if (controller_filter != -1 && controller_filter != (int)i) continue;
+                SDL_GameController* controller = InputState.cur_controllers[i];
                 float cur_val = SDL_GameControllerGetAxis(controller, axis) * (1/32768.0f);
                 if (negative_range) {
                     cur_val = -cur_val;

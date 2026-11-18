@@ -195,6 +195,40 @@ namespace recomp {
     BackgroundInputMode get_background_input_mode();
     void set_background_input_mode(BackgroundInputMode mode);
 
+    // Mario Tennis recomp: local multiplayer.
+    //  On: each controller is its own player, in the order they were connected; the keyboard stays
+    //      with player 1.
+    //  OnKeyboard: as On, but the keyboard is its own player, after the controllers.
+    //  Off: every controller and the keyboard control player 1.
+    enum class MultiplayerMode {
+        On,
+        OnKeyboard,
+        Off,
+        OptionCount
+    };
+
+    NLOHMANN_JSON_SERIALIZE_ENUM(recomp::MultiplayerMode, {
+        {recomp::MultiplayerMode::On, "On"},
+        {recomp::MultiplayerMode::OnKeyboard, "OnKeyboard"},
+        {recomp::MultiplayerMode::Off, "Off"}
+    });
+
+    // Which inputs drive N64 controller port `port` (0-3).
+    struct PortSource {
+        bool present = false;
+        bool keyboard = false;
+        int controller = -1;   // -1: all controllers, -2: none, >= 0: that controller (connection order)
+    };
+    PortSource mt_port_source(int port);
+
+    MultiplayerMode get_multiplayer_mode();
+    void set_multiplayer_mode(MultiplayerMode mode);
+    size_t get_connected_controller_count();
+    // Restrict controller reads on the calling thread to one controller (connection order); -1 = all.
+    void set_input_controller_filter(int index);
+    // Whether N64 controller port controller_num (0-3) has a player.
+    bool mt_player_present(int controller_num);
+
     bool game_input_disabled();
     bool all_input_disabled();
 }

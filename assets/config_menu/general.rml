@@ -56,7 +56,7 @@
                                 data-checked="background_input_mode"
                                 value="On"
                                 id="bg_input_enabled"
-                                style="nav-up: #joystick_deadzone_input"
+                                style="nav-up: #joystick_deadzone_input; nav-down: #multiplayer_enabled"
                             />
                             <label class="config-option__tab-label" for="bg_input_enabled">On</label>
 
@@ -68,9 +68,50 @@
                                 data-checked="background_input_mode"
                                 value="Off"
                                 id="bg_input_disabled"
-                                style="nav-up: #joystick_deadzone_input"
+                                style="nav-up: #joystick_deadzone_input; nav-down: #multiplayer_disabled"
                             />
                             <label class="config-option__tab-label" for="bg_input_disabled">Off</label>
+                        </div>
+                    </div>
+
+                    <div class="config-option" data-event-mouseover="set_cur_config_index(10)" id="conf-general__Multiplayer">
+                        <label class="config-option__title">Local Multiplayer</label>
+                        <div class="config-option__list">
+                            <input
+                                type="radio"
+                                data-event-blur="set_cur_config_index(-1)"
+                                data-event-focus="set_cur_config_index(10)"
+                                name="multiplayer_mode"
+                                data-checked="multiplayer_mode"
+                                value="On"
+                                id="multiplayer_enabled"
+                                style="nav-up: #bg_input_enabled"
+                            />
+                            <label class="config-option__tab-label" for="multiplayer_enabled">On</label>
+
+                            <input
+                                type="radio"
+                                data-event-blur="set_cur_config_index(-1)"
+                                data-event-focus="set_cur_config_index(10)"
+                                name="multiplayer_mode"
+                                data-checked="multiplayer_mode"
+                                value="OnKeyboard"
+                                id="multiplayer_keyboard"
+                                style="nav-up: #bg_input_disabled"
+                            />
+                            <label class="config-option__tab-label" for="multiplayer_keyboard">On + Keyboard</label>
+
+                            <input
+                                type="radio"
+                                data-event-blur="set_cur_config_index(-1)"
+                                data-event-focus="set_cur_config_index(10)"
+                                name="multiplayer_mode"
+                                data-checked="multiplayer_mode"
+                                value="Off"
+                                id="multiplayer_disabled"
+                                style="nav-up: #bg_input_disabled"
+                            />
+                            <label class="config-option__tab-label" for="multiplayer_disabled">Off</label>
                         </div>
                     </div>
                 </div>
@@ -122,6 +163,16 @@
                         <br/>
                         <br/>
                         This option also enables right stick control while looking and aiming.
+                    </p>
+                    <p data-if="cur_config_index == 10">
+                        <b>On:</b> each controller is its own player, numbered in the order the controllers were connected (up to 4). The keyboard stays with player 1.
+                        <br/>
+                        <b>On + Keyboard:</b> the same, but the keyboard is its own player after the controllers (with one controller: the controller is player 1 and the keyboard player 2).
+                        <br/>
+                        <b>Off:</b> every controller controls player 1.
+                        <br/>
+                        <br/>
+                        Connect the controllers before starting a multiplayer match.
                     </p>
                     <p data-if="cur_config_index == 9">
                         Inverts the camera controls for the analog camera if it's enabled. <b>None</b> is the default.

@@ -4,6 +4,10 @@ A native PC port of **Mario Tennis (N64, USA)**, made with [N64Recomp](https://g
 and the [RT64](https://github.com/rt64/rt64) renderer. The original game code is translated into C and
 compiled to a Windows program, so it runs natively instead of through an emulator.
 
+![A widescreen match](docs/screenshot-match.jpg)
+
+![Character Select with Donkey Kong Jr. and Shy Guy](docs/screenshot-select.jpg)
+
 > **No game files are included.** This repository holds only the port's own code, tools and artwork.
 > You supply the game yourself, and it and everything generated from it stay on your machine.
 
@@ -32,9 +36,15 @@ unzip it, run `MarioTennisRecompiled.exe`, pick your ROM and press Start game. T
 code or data: the game is translated from your own ROM when it starts.
 
 ## Features
-- Runs at any resolution: 720p, 1080p, 1440p, 4K or matching the window, with widescreen stretch.
+- Runs at any resolution: 720p, 1080p, 1440p, 4K or matching the window.
+- Widescreen: Aspect Ratio **Expand** makes the game draw a wider 3D view matching your window (16:9,
+  ultrawide and so on); menus and the score display are stretched to fit. The opening airship flyover stays 4:3.
 - Controller support (including DualSense), with rumble and remappable controls.
+- Local multiplayer for up to 4 players: each controller is its own player, in the order they were connected.
+  "On + Keyboard" also makes the keyboard a player, so one controller and a keyboard can play 2-player
+  (Settings → General → Local Multiplayer).
 - Saves work as on the cartridge.
+- Bonus characters: Donkey Kong Jr. and Shy Guy are unlocked from the start.
 - A new sunny court launcher screen.
 - DirectX 12 or Vulkan (Settings → Graphics → Graphics API).
 - Optional CRT shaders from RetroArch (CRT-Royale, CRT-Royale Fast, CRT-Lottes) via librashader

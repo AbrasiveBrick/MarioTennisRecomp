@@ -263,6 +263,19 @@ index 46f63f1..f50d7b8 100644
                  dp_complete();
                  // printf("Renderer ProcessDList time: %d us\n", static_cast<u32>(std::chrono::duration_cast<std::chrono::microseconds>(renderer_end - renderer_start).count()));
              }
+diff --git a/ultramodern/src/input.cpp b/ultramodern/src/input.cpp
+index 03a7c6b..830be5f 100644
+--- a/ultramodern/src/input.cpp
++++ b/ultramodern/src/input.cpp
+@@ -71,7 +71,7 @@ static void __osContGetInitData(u8* pattern, OSContStatus *data) {
+             data[controller].status = device_info.connected_pak != ultramodern::input::Pak::None;
+             data[controller].err_no = 0x00;
+ 
+-            *pattern = 1 << controller;
++            *pattern |= 1 << controller;
+         }
+         else {
+             // Mark controller as not connected
 diff --git a/ultramodern/src/mesgqueue.cpp b/ultramodern/src/mesgqueue.cpp
 index 6f38e02..09afd36 100644
 --- a/ultramodern/src/mesgqueue.cpp

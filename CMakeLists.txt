@@ -120,6 +120,7 @@ set (SOURCES
     ${CMAKE_SOURCE_DIR}/src/game/mt_libultra.cpp
     ${CMAKE_SOURCE_DIR}/src/game/mt_tlb.cpp
     ${CMAKE_SOURCE_DIR}/src/game/mt_dldump.cpp
+    ${CMAKE_SOURCE_DIR}/src/game/mt_bonus.cpp
     ${CMAKE_SOURCE_DIR}/src/game/mt_dlfix.cpp
     ${CMAKE_SOURCE_DIR}/src/game/mt_prof.cpp
     ${CMAKE_SOURCE_DIR}/src/game/mt_widescreen.cpp
