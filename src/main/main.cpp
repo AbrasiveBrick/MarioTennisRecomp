@@ -241,7 +241,8 @@ void queue_samples(int16_t* audio_data, size_t sample_count) {
         throw std::runtime_error("Error using SDL audio converter");
     }
 
-    uint64_t cur_queued_microseconds = uint64_t(SDL_GetQueuedAudioSize(audio_device)) / bytes_per_frame * 1000000 / sample_rate;
+    // Mario Tennis recomp: the queue holds output-rate frames, so measure it at the output rate.
+    uint64_t cur_queued_microseconds = uint64_t(SDL_GetQueuedAudioSize(audio_device)) / (output_channels * sizeof(float)) * 1000000 / output_sample_rate;
     uint32_t num_bytes_to_queue = audio_convert.len_cvt - output_channels * discarded_output_frames * sizeof(swap_buffer[0]);
     float* samples_to_queue = swap_buffer.data() + output_channels * discarded_output_frames / 2;
 

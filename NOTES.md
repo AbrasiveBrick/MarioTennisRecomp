@@ -362,3 +362,69 @@ the head-on banner view, not the overhead shot.
   registers the file as `?/mt-splash` before loading launcher.rml, which shows it with `<img>` at full window
   width, vertically centred. The text title is hidden (the art has its own logo). lunasvg can't draw embedded
   `<image>` elements, so the art can't go inside mt-splash.svg (kept, unused).
+
+## Audio popping (issues #3 / #7)
+- Cause: the game's audio loop (0x802EDC0C, seg19) waits while `osAiGetStatus` reports
+  AI_STATUS_FIFO_FULL (0x80000000) and otherwise makes one chunk per VI. Its smallest chunk is 552
+  samples, 3.5% more than one VI at 32 kHz. The runtime always reported "not full", so the SDL queue
+  crept up until `queue_samples` dropped every other sample of a chunk (about 4 chunks a second,
+  177 in 45 s). Each of those is a short double-speed blip, heard as popping.
+- Fix (runtime patch): `ultramodern::is_audio_fifo_full()`. It reports full while more than one VI
+  of samples remains, and `osAiGetStatus` returns it. The game now varies its chunks (368/552/736)
+  as on hardware. Queue: 10–40 ms. Dropped chunks: 0.
+- main.cpp: the latency guard now measures the queue at the output rate (48 kHz). It used the game
+  rate, which overstated the queue by 1.5×.
+- Before and after recordings are in `screenshots/audio/before.wav` and `after.wav`: 15 s of
+  the title screen.
+
+## Stray frames at replays and camera cuts (issue #8)
+- Recorded the 140 s title demo at 60 fps (ffmpeg ddagrab) and counted frames shown out of order:
+  a frame that differs from both neighbours while the neighbours match each other.
+  - Framerate **Display** (RT64 interpolation), PresentEarly: 11 out-of-order frames.
+  - Framerate Display with Console presentation (no interpolation possible): 0.
+  - Framerate **Original** (the default), PresentEarly: 0.
+- So the stray frames come from RT64 frame interpolation. This game has no matrix tags, so RT64
+  guesses which objects match between frames, and gets it wrong at camera cuts. The same cause
+  gives the swing hitch noted next to `rr_default` in config.cpp. Original is unaffected.
+- No CPU writes to the framebuffers were seen. At replay cuts the game itself swaps back to a
+  buffer drawn 2–3 frames earlier. PresentEarly does not follow those swaps, and that is harmless
+  at Original.
+
+## Menu transitions shifted right (issue #9)
+- Menu transitions (title → Main Menu, into and out of Player Select and Play Mode) first copy
+  the screen into a 304-wide buffer at 0x229CC0. The copy loads columns 0..303 of the
+  384-wide framebuffer (SETTIMG width 384 + LOADTILE), then draws them at x 0..303 under the
+  narrow scissor (0..344).
+- mt_dlfix moves the narrow layout right by 40. That moved the copy's rectangles and scissor
+  too, while the source columns stayed at 0..303 of a screen whose layout is already at 40..343.
+  The captured picture ended up 80 px (26%) to the right, with black on the left.
+- Fix in mt_dlfix pass 2: while the colour image is not 384 wide, rectangles are left alone,
+  and the scissor in effect is put back to the game's own words. LOADTILEs from a 384-wide
+  texture image are moved by 40 instead, so the copy takes columns 40..343.
+- Checked on 60 fps recordings of the menu path. Frames with the black left band: 39 (3
+  transitions) before, 0 after. The title → menu transition is now seamless.
+- For reference, parallel_n64 in RetroArch builds the new menu over black there.
+
+## Transfer Pak characters (issue #10)
+- The N64 game has 20 characters: IDs 16–19 are the Game Boy Color characters. ID 0x14 is the
+  locked "?" icon used for DK Jr. and Shy Guy. A real transfer reads the GBC save (0xB08 bytes per
+  controller port, buffers 0x8012F1F8 and 0x8012E6E8, Game Boy cartridge-header check at
+  0x80125EB4). The result goes into the N64's own save data:
+  - 0x80065468 (save 0x200): byte, Game Boy characters present.
+  - 0x800653D8 + s*0x48 (save 0x170/0x1B8): word, slot ID; +4: byte, slot in use. Two slots,
+    one per Game Boy duo.
+  - 0x800653E0 + s*0x48 + c*0x20: character record. 0x00 name (ASCII, 11 bytes), 0x0B type,
+    0x0C 0, 0x0D level, 0x0E–0x18 stats. `func_8003CC84(i)` returns record i (i = ID − 16).
+- `func_8003CB74` is a developer routine. Character Select start-up calls it when
+  `func_800321C4()` (developer mode) is true. It fills the slots with "DGB1"–"DGB4", level 25
+  and all stats 5. The menus then build the match data themselves (`func_8003C930` →
+  `func_8003C110` per character, from the type template at 0x8005BAF0).
+- Types, checked on Character Select: 0 Alex (blue cap), 1 Nina (pigtails), 2 Harry (headband,
+  beard), 3 Kate (headband).
+- src/game/mt_bonus.cpp writes the same records with the real names when no Game Boy
+  characters are present: slot 0 is Alex & Harry, slot 1 is Nina & Kate, and the slot IDs are
+  "MT" + slot number. It never touches real ones. For its own records it only keeps the name and
+  type up to date, so levels and stats the game changes are kept. The game saves the records with
+  the rest of the save data.
+- Tested: a third row on Player Select with all four characters, names correct. Harry played an
+  Exhibition singles match against Mario.

@@ -45,6 +45,7 @@ code or data: the game is translated from your own ROM when it starts.
   (Settings → General → Local Multiplayer).
 - Saves work as on the cartridge.
 - Bonus characters: Donkey Kong Jr. and Shy Guy are unlocked from the start.
+- Transfer Pak characters: Alex, Harry, Nina and Kate from the Game Boy Color version are on Character Select without a Transfer Pak (level 25, starting stats).
 - A new sunny court launcher screen.
 - DirectX 12 or Vulkan (Settings → Graphics → Graphics API).
 - Optional CRT shaders from RetroArch (CRT-Royale, CRT-Royale Fast, CRT-Lottes) via librashader

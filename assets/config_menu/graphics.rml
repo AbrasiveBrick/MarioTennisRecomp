@@ -412,7 +412,7 @@
                         Sets whether the game should display <b>Windowed</b> or <b>Fullscreen</b>. You can also use <b>F11</b> or <b>Alt + Enter</b> to toggle this option.
                     </p>
                     <p data-if="cur_config_index == 4">
-                        Sets the game's output framerate. This option does not affect gameplay. <b>Original</b> (30 fps) is recommended: <b>Display</b> and <b>Manual</b> smooth motion with generated in-between frames, which makes your player hitch briefly on each swing in this game.
+                        Sets the game's output framerate. This option does not affect gameplay. <b>Original</b> (30 fps) is recommended: <b>Display</b> and <b>Manual</b> smooth motion with generated in-between frames, which makes your player hitch briefly on each swing in this game and can flash a single stray frame at camera cuts (replays, scene transitions).
                         <br />
                         <br />
                         Note: If you have issues with <b>Display</b> mode while using an external frame limiter, use <b>Manual</b> mode instead and configure it to that same frame limit.

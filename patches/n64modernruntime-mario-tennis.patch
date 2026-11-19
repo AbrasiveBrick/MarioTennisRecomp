@@ -11,6 +11,18 @@ index 56480d6..6194e3c 100644
      void do_rom_read(uint8_t* rdram, gpr ram_address, uint32_t physical_addr, size_t num_bytes);
      void do_rom_pio(uint8_t* rdram, gpr ram_address, uint32_t physical_addr);
      const Version& get_project_version();
+diff --git a/librecomp/src/ai.cpp b/librecomp/src/ai.cpp
+index 0195f2b..2ad01b4 100644
+--- a/librecomp/src/ai.cpp
++++ b/librecomp/src/ai.cpp
+@@ -25,5 +25,6 @@ extern "C" void osAiGetLength_recomp(uint8_t* rdram, recomp_context* ctx) {
+ }
+ 
+ extern "C" void osAiGetStatus_recomp(uint8_t* rdram, recomp_context* ctx) {
+-    ctx->r2 = 0x00000000; // Pretend the audio DMAs finish instantly
++    // AI_STATUS_FIFO_FULL while enough audio is queued (see ultramodern::is_audio_fifo_full).
++    ctx->r2 = ultramodern::is_audio_fifo_full() ? 0x80000000 : 0x00000000;
+ }
 diff --git a/librecomp/src/overlays.cpp b/librecomp/src/overlays.cpp
 index 8c8e5d1..dac267f 100644
 --- a/librecomp/src/overlays.cpp
@@ -147,7 +159,7 @@ index a8cd8e0..139eb99 100644
  
          NLOHMANN_JSON_SERIALIZE_ENUM(ultramodern::renderer::Antialiasing, {
 diff --git a/ultramodern/include/ultramodern/ultramodern.hpp b/ultramodern/include/ultramodern/ultramodern.hpp
-index db45ee4..91b80cb 100644
+index db45ee4..c0db62a 100644
 --- a/ultramodern/include/ultramodern/ultramodern.hpp
 +++ b/ultramodern/include/ultramodern/ultramodern.hpp
 @@ -74,6 +74,8 @@ enum class ThreadPriority {
@@ -159,6 +171,33 @@ index db45ee4..91b80cb 100644
  void set_main_thread();
  bool is_game_thread();
  void submit_rsp_task(RDRAM_ARG PTR(OSTask) task);
+@@ -98,6 +100,8 @@ void init_audio();
+ void set_audio_frequency(uint32_t freq);
+ void queue_audio_buffer(RDRAM_ARG PTR(s16) audio_data, uint32_t byte_count);
+ uint32_t get_remaining_audio_bytes();
++// Mario Tennis recomp: true while enough audio is queued that the AI FIFO would be full on hardware.
++bool is_audio_fifo_full();
+ 
+ struct audio_callbacks_t {
+     using queue_samples_t = void(int16_t*, size_t);
+diff --git a/ultramodern/src/audio.cpp b/ultramodern/src/audio.cpp
+index 3198be0..45a649c 100644
+--- a/ultramodern/src/audio.cpp
++++ b/ultramodern/src/audio.cpp
+@@ -43,6 +43,13 @@ float buffer_offset_frames = 0.5f;
+ // If there's ever any audio popping, check here first. Some games are very sensitive to
+ // the remaining sample count and reporting a number that's too high here can lead to issues.
+ // Reporting a number that's too low can lead to audio lag in some games.
++// Mario Tennis recomp: the game's audio loop waits while osAiGetStatus reports the FIFO full, which is
++// how it stays in step with the DAC on hardware (its minimum chunk is more than one VI of samples).
++// Report full once more than one VI of samples is left, so the queue cannot creep up.
++bool ultramodern::is_audio_fifo_full() {
++    return get_remaining_audio_bytes() > (sample_rate / 60) * 2 * sizeof(int16_t);
++}
++
+ uint32_t ultramodern::get_remaining_audio_bytes() {
+     // Get the number of remaining buffered audio bytes.
+     uint32_t buffered_byte_count;
 diff --git a/ultramodern/src/events.cpp b/ultramodern/src/events.cpp
 index 46f63f1..f50d7b8 100644
 --- a/ultramodern/src/events.cpp

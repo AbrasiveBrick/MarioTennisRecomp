@@ -97,28 +97,38 @@ extern "C" void mt_fixup_gfx_task(uint8_t* rdram, uint32_t task) {
     if (!narrow_frame) return;
 
     // Pass 2: move the layout and splice in the margin clear.
+    //
+    // Menu transitions (issue #9): the game captures the screen into a 304-wide buffer by loading
+    // columns 0..303 of the 384-wide framebuffer and drawing them at x 0..303. Our layout is at
+    // 40..343, so while the colour image is not 384 wide ("capture"), rectangles and the scissor
+    // are left alone and the framebuffer columns being loaded are moved by 40 instead.
     bool narrow = false, spliced = false, after_first_fill = false, fb_set_after_fill = false;
+    bool capture = false;
+    uint32_t timg_width = 0;
+    uint32_t scissor_addr = 0, scissor_w0 = 0, scissor_w1 = 0;      // last scissor we moved, original words
     walk(rdram, task, [&](uint32_t cur, uint32_t w0, uint32_t w1, auto& resolve) {
         uint8_t op = w0 >> 24;
         switch (op) {
             case 0xED:                                                      // SETSCISSOR
                 narrow = is_narrow_scissor(w0, w1);
-                if (narrow) {
+                scissor_addr = 0;
+                if (narrow && !capture) {
                     uint32_t n0 = (w0 & ~(0xFFFu << 12)) | (shift << 12);
                     uint32_t n1 = (w1 & ~(0xFFFu << 12)) | (q(344) << 12);
+                    // The game's own words, to restore if a capture follows (a scissor in a static
+                    // list that was already moved reads back as 0..344, which is fine for a capture).
+                    scissor_addr = cur;
+                    scissor_w0 = (w0 & ~(0xFFFu << 12));
+                    scissor_w1 = w1;
                     if (n0 != w0) wr(rdram, cur, n0);
                     if (n1 != w1) wr(rdram, cur + 4, n1);
                 }
                 break;
-            case 0xDC:                                                      // MOVEMEM
-                if ((w0 & 0xFF) == 8) {                                     // G_MV_VIEWPORT
-                    uint32_t vp = resolve(w1);
-                    if (rd16(rdram, vp + 8) == q(152)) wr16(rdram, vp + 8, q(192));   // trans.x
-                }
+            case 0xFD:                                                      // SETTIMG
+                timg_width = (w0 & 0xFFF) + 1;
                 break;
-            case 0xE4: case 0xE5: case 0xF6:                                // TEXRECT / FLIP / FILLRECT
-                if (op == 0xF6 && !after_first_fill) after_first_fill = true;
-                if (narrow) {
+            case 0xF4:                                                      // LOADTILE
+                if (capture && timg_width == 384) {
                     auto it = shifted.find(cur);
                     bool done = (it != shifted.end()) && it->second.first == w0 && it->second.second == w1;
                     if (!done) {
@@ -129,9 +139,37 @@ extern "C" void mt_fixup_gfx_task(uint8_t* rdram, uint32_t task) {
                     }
                 }
                 break;
-            case 0xFF:                                                      // SETCIMG
+            case 0xDC:                                                      // MOVEMEM
+                if ((w0 & 0xFF) == 8) {                                     // G_MV_VIEWPORT
+                    uint32_t vp = resolve(w1);
+                    if (rd16(rdram, vp + 8) == q(152)) wr16(rdram, vp + 8, q(192));   // trans.x
+                }
+                break;
+            case 0xE4: case 0xE5: case 0xF6:                                // TEXRECT / FLIP / FILLRECT
+                if (op == 0xF6 && !after_first_fill) after_first_fill = true;
+                if (narrow && !capture) {
+                    auto it = shifted.find(cur);
+                    bool done = (it != shifted.end()) && it->second.first == w0 && it->second.second == w1;
+                    if (!done) {
+                        uint32_t n0 = add12(w0, 12, shift), n1 = add12(w1, 12, shift);
+                        wr(rdram, cur, n0);
+                        wr(rdram, cur + 4, n1);
+                        shifted[cur] = { n0, n1 };
+                    }
+                }
+                break;
+            case 0xFF: {                                                    // SETCIMG
+                const bool was_capture = capture;
+                capture = ((w0 & 0xFFF) + 1) != 384;
+                if (capture && !was_capture && scissor_addr != 0) {
+                    // The scissor in effect was moved to 40..344; put the game's one back for the capture.
+                    wr(rdram, scissor_addr, scissor_w0);
+                    wr(rdram, scissor_addr + 4, scissor_w1);
+                    scissor_addr = 0;
+                }
                 if (after_first_fill && !fb_set_after_fill) { fb_set_after_fill = true; return true; }
                 break;
+            }
             default:
                 break;
         }
