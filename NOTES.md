@@ -428,3 +428,142 @@ the head-on banner view, not the overhead shot.
   the rest of the save data.
 - Tested: a third row on Player Select with all four characters, names correct. Harry played an
   Exhibition singles match against Mario.
+
+## Continue screen portraits cut off (issue #16)
+- Main Menu > Continue (the book icon) draws the two players in their own scissor boxes, x 26..112
+  (1P) and 192..278 (2C), with a viewport centred at x 152.
+- mt_dlfix moved that viewport right by 40 (152 -> 192) with the rest of the narrow layout, but
+  not the two scissor boxes. Each player was clipped by a box 40 px left of its panel: cut down the
+  middle in 4:3, and in Expand (where menu 3D is drawn narrower) 1P was almost completely hidden.
+- Fix in mt_dlfix pass 2: any other scissor inside the narrow layout (0 < x0, x1 <= 304) moves by 40
+  along with the rectangles drawn under it; moved words are remembered like the shifted rectangles.
+- Checked in Original (4:3) and Expand (window 1600x960): both players whole and centred in their
+  panels. Player Select, Play Mode, set choice and Court Select unchanged.
+
+## Bowser spotlight stripes (issue #12)
+- Intro, ~108 s after autostart: Bowser lands in a spotlight and the rest of the stadium should go
+  dark. At high resolution it was barely darkened and covered in thin vertical stripes, one per
+  game pixel (stripe period = output width / 384 on the reporter's 4K shot and on a 1600-wide one).
+- How the game draws it: SETCIMG RGBA16 w384 @0x238040, fill 0xD800, the light cone (18 vertices
+  at 0x123A60, vertex colour 0x40,0,0 at the rim to black in the middle, combiner = shade), then
+  back on the screen: SETTIMG **I8 w768** @0x238040, TEXRECTs with dsdx 2.0, combiner colour 0 /
+  alpha TEXEL0, blender in*in_a + mem*(1-a). So the mask's 16-bit pixels are read as bytes, and on
+  hardware each screen pixel lands on an even byte: the high byte, 0xD8 = 85% dark outside the cone.
+- 0x238040 goes through RDRAM (`mtUseRDRAMForFramebuffer`, see v0.1.1 notes), so RT64 gets the true
+  bytes, but it draws the rectangle at output resolution and s runs through the whole 2-texel step
+  inside each game pixel: half of every pixel sampled the odd byte (0x00 = no darkening).
+- Fix (`fix_byte_masks` in mt_dlfix.cpp): when a task loads a 16-bit colour image as an 8-bit
+  texture of twice the width, fill colours set while that image is the colour image get their high
+  byte copied into the low byte (0xD800 -> 0xD8D8), so either byte gives the hardware value. Patches
+  are undone at the next task. `MT_MASK_OLD=1` turns it off for comparison. The cone keeps low
+  byte 0 (at most 0x40 vs 0 at the rim).
+- Measured at 1600x960 (Auto resolution, MSAA 2x): stripe amplitude at the game-pixel frequency
+  12.6 -> 0.23 outside the cone, 2.9 -> 0.04 inside. Not tried instead: RT64's non-upscaled 2D path
+  (`RasterPS` lowResUV) would sample it natively too, but ScaledOnly upscales every scaled rect and
+  G_EX_FORCEUPSCALE2D can only turn upscaling on.
+- Diagnostics: `MT_LOG_2D=<file> MT_LOG_2D_ALL=<s>` logs every frame's 2D/state commands for 8 s
+  starting s seconds after the first graphics task (not just narrow-layout frames).
+
+## Low-res pause / score / replay backgrounds (issue #13)
+- On a pause menu, a score screen ("30 - 40") or a replay wipe the game copies the finished frame (e.g.
+  0x3D6000) into 0x238040 in COPY mode (5-row LOADTILE/TEXRECT strips, dsdx 4), then draws that copy
+  back each frame (RGBA16 w384, dsdx 1) as the background.
+- Since v0.1.1 every off-screen image except the four screen buffers is read from RDRAM
+  (`mtUseRDRAMForFramebuffer` in rt64_rdp.cpp), so this background was the native 384x224 picture.
+- Fix (RT64 patch): 0x238040 keeps a GPU tile copy when it is loaded in its own pixel size (16-bit).
+  The intro spotlight mask (#12) loads it as 8-bit texels, which RT64 cannot reinterpret, so that
+  read still goes through RDRAM. `MT_RDRAM_CAPTURE=1` restores the old behaviour.
+- Checked: title-demo score screens and the tournament pause menu are sharp (court lines smooth,
+  stair-stepped with MT_RDRAM_CAPTURE=1); the intro spotlight is unchanged. Not specifically
+  checked: the smash double replay, which was the reason 0x238040 went to RDRAM in v0.1.1 (black box).
+- Diagnostics: `MT_LOG_2D_ADDR=<hex>` limits MT_LOG_2D_ALL to frames that mention that address;
+  `MT_LOG_2D_LEN=<s>` sets the window (default 8 s).
+
+## Save Menu seam lines (issue #15) -- not reproduced yet
+- Reporter: only after winning a tournament match, bracket -> Save (narrow-layout menu over the
+  stars background); Original 2x, Expand, MSAA 2x. Dashed dark lines across the full width at about
+  rows 103, 151 and 199 (slot boundaries), thinner than a game pixel, so a high-resolution artifact.
+- The Save Menu from the tournament pause menu (Main Menu > Continue > tournament slot, 5 x A on the
+  bracket, Start in the match, 4 x Right, A) is clean at Original 2x and Auto. That one is drawn over
+  the match, not the narrow-layout bracket, so mt_dlfix's narrow pass does not touch it.
+- `release\MarioTennisRecompiled-Debug\debug-log-issue15.bat` logs the narrow-layout 2D drawing
+  (MT_LOG_2D) for a playthrough up to the seams.
+
+## Slowdown in Ring Shot / Piranha Challenge (issue #14)
+- `MT_FPS=1` (with MT_LOG) prints graphics tasks per second. The game runs at 30 per second in the
+  intro, all title demos, and Ring Shot during rallies (29-31 every second, no dips), at Display
+  framerate on this machine. No game slowdown found; Piranha Challenge not tried.
+- Ball and trail in a Ring Shot rally (300 frames): always 5 draws of vertex 0x1388B0, ball first
+  (prim alpha 0x9F) then 4 trail copies, matrices alternating between two fixed sets. So the
+  matrix-group pairing by draw order is stable; the remaining ball stalls (see below) are not a
+  pairing problem. Presentation timing (30 fps game on a 60 Hz display) is the next suspect.
+
+## Hard-court shadows: blobs instead of character silhouettes (2026-11-20)
+- Shadows on the hard court are 64x64 8-bit silhouette images laid on a soft 9-vertex mesh (render
+  mode 0C184341, alpha = mesh x (1 - texel)). Static objects get their own image, drawn once at match
+  start (the X-shaped one at 0x28C900 is the umpire's chair from above, correct). Players use the
+  shared buffer 0x0D4A80, redrawn per player per frame (shadow routine func_seg31_800D02B8, mask 6
+  via entry stub 0x800CA020).
+- The player-silhouette call is skipped when the word 0x8013678C is non-zero (func_seg86_800EDAC8,
+  right after the player model is drawn through 0x800CA018); the players then get only the simple
+  blob shadow. That word is copied from the byte 0x80065242 at match setup (func_seg86_800E2494).
+  0x80065242 is set to 1 by func_seg462_800EC5B4 (with 0x80065240 = 2) and also skips drawing in
+  seg703: a reduced-detail mode the game uses for matches entered through Main Menu > Continue.
+- Checked: a fresh tournament has 0x80065242 = 0 and crisp character silhouettes in the recomp; a
+  tournament resumed through Continue has 1 and blobs. RetroArch (ParaLLEl-RDP) in a fresh tournament
+  also has 0 and silhouettes. Not yet checked: RetroArch on the Continue path (expected: blobs too).
+- RT64 renders these correctly; a Python F3DEX2 reference rasterizer on an RDRAM dump gave the same
+  silhouette images as RT64.
+- Object table: 20 slots of 0x788 bytes at 0x800D8410 (func_800CCBE0), +0x14 id (-1 = free),
+  +0x39E shadow alpha, +0x370 matrix-set parity, +0x2F0 + 0x40*parity shadow matrix, +0x6BC/+0x6C0
+  own-silhouette flags/buffer.
+- Diagnostics added: MT_DUMP_MEM=<addr>:<size>:<file> (with MT_LOG_2D_ALL window; MT_DUMP_MEM_CIMG=<addr>
+  dumps only tasks drawing into that colour image, plus the next task to <file>.next, and <file>.task
+  holds the list start), MT_WATCH=<addrs> (at task start), MT_WATCH_THREAD=<addrs> (0.5 ms sampling
+  thread), MT_TEX_SWAP=<from>:<to>, MT_LOG_2D now prints viewports and colour image formats; RT64:
+  MT_FB_DUMP=<addr> MT_FB_DUMP_FILE=<path> (write-back bytes), MT_PRIMZ_OLD=1 (prim-depth patch off).
+- RetroArch memory can be read live over its network commands (retroarch.cfg network_cmd_enable,
+  UDP 55355, READ_CORE_MEMORY; words come back byte-swapped). 4 MB in about 18 s.
+
+## Matrix tags for frame interpolation (issues #14, #11, #8)
+- With Framerate Display/Manual RT64 interpolates extra frames and must pair each object with the
+  same object in the previous frame. This game sends no matrix tags, so RT64 guessed: the ball
+  dropped to 30 Hz for stretches (step pattern 9.2, 0.0, 8.0, 0.0 px on a 60 fps recording), and
+  at camera cuts in-between frames showed limbs and rackets flung across the screen (#11, #8).
+- mt_dlfix `tag_matrices` (only when Framerate is not Original): the task's list is preceded by
+  gEXEnable, and the first G_VTX after each modelview G_MTX or G_POPMTX is replaced by a call to a
+  slot {gEXMatrixGroup(id), the original G_VTX, end}. ID = the vertex data's address when that
+  address was also tagged in the previous task (model data does not move); otherwise G_EX_ID_AUTO.
+  Group flags = Zelda64Recomp's "DecomposedNormal" (linear order). Slots alternate between two
+  halves of RDRAM 0x700000..0x7EEFFF (all zero in an 8 MiB dump: the game uses 4 MiB); the
+  gEXEnable prelude is at 0x7EF000. Every patch is undone at the start of the next task, so lists
+  the game skips for a while never point at reused memory.
+- Facts used: tasks alternate between two root lists (0x0640D8 / 0x0644E0); most matrices
+  alternate between two buffers, so a matrix address is not stable from one frame to the next,
+  but the vertex address after a matrix change is (e.g. 442 of 458 identical in a match frame).
+  Shadows (vertex 0x0D3AC8) are drawn sorted by distance; the ball and its 4-copy trail are vertex
+  0x1388B0 with matrices 0x149C40..0x149E40, used as a rotating ring.
+- Measured on 60 fps recordings (`ddagrab`), scripts in the session scratchpad:
+  - Intro (same every run), in-between frames that do not sit between their neighbours
+    (error > motion): 27 untagged, 9-11 tagged; worst spike 30.7 -> 1.8. The 112.5 s camera
+    cut that flung Luigi's and Mario's limbs is clean.
+  - Title-demo rallies (a different random match each run), ball tracked on its yellow core:
+    even steps 75% -> 78-80%, 30 Hz stalls 9.1% -> 6.8-7.1%.
+  - A test that tagged everything "no interpolation" took uneven ball steps from ~10% to 73%,
+    which confirmed RT64 receives the tags.
+  - Rejected: G_EX_ORDER_AUTO (ball paired with its own trail: 55% uneven) and IDs that also
+    include the matrix address (the ring rotates: 19% stalls).
+- Not done: the remaining few stalls of the ball.
+- Shadows paired with the wrong object (fixed 2026-11-20): all eleven courtside shadows (Bob-ombs,
+  Koopas, umpire's chair, Lakitu...) draw the same mesh (vertex 0x0D3AC8), sorted by distance from the
+  camera, so they all had the same ID and RT64 paired them by draw order. When the camera moved and the
+  order changed, an in-between frame drew a shadow halfway towards another object's (user report:
+  "the Bob-ombs misplace sort of between where they should be", worst while running). The ID now
+  also includes the object-table slot (20 x 0x788 at 0x0D8410) that the current modelview matrix comes
+  from, tracked through G_MTX push/load/mul and G_POPMTX; slots are fixed for a match.
+  MT_TAG_NO_OWNER=1 restores the old IDs; MT_TAG_DBG=1 prints tagged loads and how many share an ID.
+  Measured in a tournament match: 33 -> 18 shared per frame. Still shared: the ball and its trail
+  (on purpose, see above) and small groups whose matrices are outside the table (eight at 0x143210..,
+  repeated draws at 0x063090). The user played a match on the fixed build (60 fps recording) and saw
+  few glitches. The general slowdown reported
+  in Piranha Challenge / Ring Shot (#14) is not looked at yet.
