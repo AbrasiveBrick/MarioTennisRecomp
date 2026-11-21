@@ -121,6 +121,10 @@ namespace {
     // gEXMatrixGroupDecomposed, no push, modelview: position, rotation, scale, skew and perspective
     // interpolated, vertices skipped, tiles interpolated, linear order (Zelda64Recomp's "Normal" preset).
     constexpr uint32_t ex_group_flags = (1u << 2) | (1u << 3) | (1u << 5) | (1u << 7) | (1u << 9) | (1u << 11) | (1u << 15);
+    // MT_TAG_SIMPLE=1 (experiment, swing stutter): gEXMatrixGroupSimple instead -- mode bit 2 = SIMPLE (the matrix values are
+    // blended directly), position/rotation/perspective/tiles interpolated, scale and skew skipped as that macro does.
+    const uint32_t ex_group_flags_simple = (1u << 3) | (1u << 5) | (1u << 11) | (1u << 15);
+    const bool tag_simple = std::getenv("MT_TAG_SIMPLE") != nullptr;
     constexpr uint32_t ex_id_auto = 0xFFFFFFFF;
 
     struct Patch { uint32_t at, w0, w1, orig0, orig1; };
@@ -132,6 +136,28 @@ namespace {
 
     constexpr uint32_t obj_table = 0x0D8410, obj_size = 0x788, obj_count = 20;   // func_800CCBE0's object slots
     const bool owner_ids_off = std::getenv("MT_TAG_NO_OWNER") != nullptr;      // A/B switch: IDs without the slot
+    const bool mtx_ids_off = std::getenv("MT_TAG_NO_MTX") != nullptr;          // A/B switch: no matrix-address IDs
+
+    // Identical models drawn more than once with matrices outside the object table (the two net posts:
+    // vertex data shared, matrices at fixed addresses) still shared an ID and could be swapped between
+    // frames like the shadows were. A vertex group that has ever been drawn with two different matrices
+    // in one task is "multi-instance" (sticky). For such a group, a draw whose matrix address was also
+    // used for it in the last task gets the matrix address mixed into its ID. Groups whose matrices change
+    // every task (the ball and its trail rotate through a ring of matrices, which pairs best by draw
+    // order; see NOTES) never find their matrix in the last task and keep the old ID.
+    // The first version qualified groups drawn more than once in the last task. The players' body parts
+    // are drawn twice with the same matrix (on court and into the shadow silhouette), and when the game
+    // skipped one of those for a frame their IDs flipped, so the player wasn't interpolated for a frame or
+    // two: a brief freeze, often right after a shot. MT_TAG_MTX_OLD=1 brings that rule back (A/B).
+    const bool mtx_rule_old = std::getenv("MT_TAG_MTX_OLD") != nullptr;
+    std::unordered_map<uint32_t, unsigned> key_count_prev, key_count_cur;   // draws per vertex group
+    std::unordered_set<uint64_t> key_mtx_prev, key_mtx_cur;                 // (group, matrix address) pairs
+    std::unordered_map<uint32_t, uint32_t> first_mtx_cur;                   // group -> first matrix this task
+    std::unordered_set<uint32_t> multi_keys;                                // groups seen with 2+ matrices in a task
+    std::unordered_map<uint64_t, uint32_t> id_prev, id_now;                 // (group, matrix) -> ID given (stats)
+    std::unordered_set<uint32_t> id_cur;                                    // final IDs this task (stats)
+    std::unordered_set<uint32_t> mtx_new_prev, mtx_new_cur;                 // matrices of draws with unseen vertex data
+    const bool mtx_only_off = std::getenv("MT_TAG_NO_MTXONLY") != nullptr;  // A/B switch: no matrix-only IDs
 
     void tag_matrices(uint8_t* rdram, uint32_t task) {
         // Undo last task's patches first, whatever the settings are now.
@@ -142,7 +168,10 @@ namespace {
 
         using RR = ultramodern::renderer::RefreshRate;
         static const bool tag_off = std::getenv("MT_TAG_OFF") != nullptr;   // TEMP A/B switch
-        if (tag_off || ultramodern::renderer::get_graphics_config().rr_option == RR::Original) { seen_cur.clear(); return; }
+        if (tag_off || ultramodern::renderer::get_graphics_config().rr_option == RR::Original) {
+            seen_cur.clear(); key_count_cur.clear(); key_mtx_cur.clear(); id_now.clear();
+            return;
+        }
 
         // Enable RT64's extended commands for this task: data_ptr -> {gEXEnable, branch to the list}.
         uint32_t start = (uint32_t)MEM_W(0x30, (gpr)(int32_t)task) & 0x1FFFFFFF;
@@ -155,6 +184,19 @@ namespace {
 
         std::swap(seen_prev, seen_cur);
         seen_cur.clear();
+        std::swap(key_count_prev, key_count_cur);
+        key_count_cur.clear();
+        std::swap(key_mtx_prev, key_mtx_cur);
+        key_mtx_cur.clear();
+        first_mtx_cur.clear();
+        std::swap(mtx_new_prev, mtx_new_cur);
+        mtx_new_cur.clear();
+        std::swap(id_prev, id_now);
+        id_now.clear();
+        id_cur.clear();
+        unsigned id_flips = 0;                                      // draws whose ID differs from last task's (stats)
+        std::string auto_list; unsigned auto_count = 0;             // draws left to RT64's own matching (stats)
+        uint32_t cur_mtx = 0;                                       // address of the last modelview matrix (0 after a pop)
         half ^= 1;
         uint32_t next = tag_base + half * tag_half;
         const uint32_t end = next + tag_half;
@@ -174,22 +216,63 @@ namespace {
                 if ((w0 & 0x04) == 0) {                                 // modelview (bit 2 = projection)
                     need_tag = true;
                     const uint32_t m = resolve(w1);
+                    cur_mtx = m;
                     const int s = (m >= obj_table && m < obj_table + obj_size * obj_count) ? int((m - obj_table) / obj_size) : -1;
                     if ((w0 & 0x01) == 0 && obj_sp < 16) obj_stack[obj_sp++] = obj;   // F3DEX2: param ^ G_MTX_PUSH
                     if ((w0 & 0x02) != 0 || s >= 0) obj = s;            // load, or a multiply by an object's matrix
                 }
             } else if (op == 0xD8) {                                    // G_POPMTX
                 need_tag = true;
+                cur_mtx = 0;
                 for (uint32_t k = std::max<uint32_t>(1, w1 / 64); k > 0 && obj_sp > 0; k--) obj = obj_stack[--obj_sp];
             } else if (op == 0x01 && need_tag && !in_tag_area(cur)) {  // G_VTX, first after a matrix change
                 need_tag = false;
                 if (next + slot_size > end) return true;                // out of room: leave it to RT64
                 const uint32_t addr = resolve(w1);
                 const uint32_t key = (obj >= 0 && !owner_ids_off) ? (addr ^ (uint32_t(obj + 1) << 24)) : addr;
-                if (!seen_cur.insert(key).second) dup_ids++;
-                const uint32_t id = seen_prev.count(key) ? key : ex_id_auto;
+                seen_cur.insert(key);
+                key_count_cur[key]++;
+                const uint64_t km = (uint64_t(key) << 32) | cur_mtx;
+                key_mtx_cur.insert(km);
+                if (cur_mtx != 0) {
+                    const auto fm = first_mtx_cur.emplace(key, cur_mtx);
+                    if (!fm.second && fm.first->second != cur_mtx) multi_keys.insert(key);
+                }
+                uint32_t id = seen_prev.count(key) ? key : ex_id_auto;
+                // Vertex data not seen last task. The players' soft shadow meshes are rebuilt every frame in
+                // two alternating buffers (0x13B638/0x13B4F8 and 0x13B698/0x13B558, matrices 0x13B980 and
+                // 0x13B9C0), so their address never matched and RT64 matched them on its own: under a fast-
+                // moving player (right after a strike) the shadow updated at 30 Hz and the player seemed to
+                // stutter. If this matrix also carried such a draw last task, the ID comes from the matrix.
+                if (id == ex_id_auto && cur_mtx != 0) {
+                    mtx_new_cur.insert(cur_mtx);
+                    if (!mtx_only_off && mtx_new_prev.count(cur_mtx) != 0) {
+                        id = 0x5A5A0000u ^ (cur_mtx * 0x9E3779B1u);
+                        if (id == ex_id_auto || id == 0) id ^= 0x1000;
+                    }
+                }
+                if (!mtx_ids_off && cur_mtx != 0 && key_mtx_prev.count(km) != 0) {
+                    bool qualify;
+                    if (mtx_rule_old) {
+                        const auto pc = key_count_prev.find(key);
+                        qualify = pc != key_count_prev.end() && pc->second > 1;
+                    } else {
+                        qualify = multi_keys.count(key) != 0;
+                    }
+                    if (qualify) {
+                        id = key ^ (cur_mtx * 0x9E3779B1u);
+                        if (id == ex_id_auto || id == 0) id ^= 0x1000;    // keep clear of G_EX_ID_AUTO / G_EX_ID_IGNORE
+                    }
+                }
+                if (id != ex_id_auto && !id_cur.insert(id).second) dup_ids++;
+                if (id != ex_id_auto) {
+                    const auto ip = id_prev.find(km);
+                    if (ip != id_prev.end() && ip->second != id) id_flips++;
+                    id_now[km] = id;
+                }
+                if (id == ex_id_auto) { char b[40]; std::snprintf(b, sizeof b, " %06X/m%06X/o%d", addr, cur_mtx, obj); auto_list += b; auto_count++; }
                 const uint32_t slot = next; next += slot_size;
-                const uint32_t words[8] = { ex_matrix_group, id, ex_group_flags, 0, w0, w1, 0xDF000000, 0 };
+                const uint32_t words[8] = { ex_matrix_group, id, tag_simple ? ex_group_flags_simple : ex_group_flags, 0, w0, w1, 0xDF000000, 0 };
                 for (uint32_t i = 0; i < 8; i++) wr(rdram, slot + 4 * i, words[i]);
                 const uint32_t p0 = 0xDE000000, p1 = 0x80000000u | slot;   // G_DL (push) to the slot
                 wr(rdram, cur, p0);
@@ -200,7 +283,21 @@ namespace {
         });
         if (static const bool dbg = std::getenv("MT_TAG_DBG") != nullptr; dbg) {
             static unsigned n = 0;
-            if ((++n % 60) == 0) std::fprintf(stderr, "[tags] %u tagged loads, %u sharing an ID\n", (unsigned)seen_cur.size() + dup_ids, dup_ids);
+            unsigned loads = 0;
+            for (const auto& kc : key_count_cur) loads += kc.second;
+            static unsigned flips_total = 0, flip_tasks = 0;
+            flips_total += id_flips;
+            if (id_flips) flip_tasks++;
+            if ((++n % 60) == 0) {
+                std::fprintf(stderr, "[tags] %u tagged loads, %u sharing an ID; last 60 tasks: %u ID changes in %u tasks\n", loads, dup_ids, flips_total, flip_tasks);
+                flips_total = flip_tasks = 0;
+            }
+            // Draws left to RT64's own matching (vertex data not seen last task), printed whenever the list changes.
+            static std::string last_auto;
+            if (auto_list != last_auto) {
+                std::fprintf(stderr, "[tags-auto] task %u: %u auto:%s\n", n, auto_count, auto_list.c_str());
+                last_auto = auto_list;
+            }
         }
     }
 }

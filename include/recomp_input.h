@@ -223,6 +223,29 @@ namespace recomp {
 
     MultiplayerMode get_multiplayer_mode();
     void set_multiplayer_mode(MultiplayerMode mode);
+
+    // Mario Tennis recomp: cheats (Settings > General), all off by default. See src/game/mt_bonus.cpp.
+    enum class CheatMode {
+        Off,
+        On,
+        OptionCount
+    };
+
+    NLOHMANN_JSON_SERIALIZE_ENUM(recomp::CheatMode, {
+        {recomp::CheatMode::Off, "Off"},
+        {recomp::CheatMode::On, "On"}
+    });
+
+    enum class Cheat {
+        AllCourts,          // GameShark 810653CC FFFF
+        StarCharacters,     // GameShark 810653CA FFFF
+        AllTournaments,     // GameShark 50000802 0000 / 81065278 EEEE
+        InfiniteBounces,    // GameShark 8015B16B 0000
+        Count
+    };
+
+    CheatMode get_cheat(Cheat cheat);
+    void set_cheat(Cheat cheat, CheatMode mode);
     size_t get_connected_controller_count();
     // Restrict controller reads on the calling thread to one controller (connection order); -1 = all.
     void set_input_controller_filter(int index);

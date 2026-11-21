@@ -237,6 +237,7 @@ struct ControlOptionsContext {
     zelda64::TargetingMode targeting_mode;
     recomp::BackgroundInputMode background_input_mode;
     recomp::MultiplayerMode multiplayer_mode;
+    recomp::CheatMode cheats[(size_t)recomp::Cheat::Count];
     zelda64::AutosaveMode autosave_mode;
     zelda64::CameraInvertMode camera_invert_mode;
     zelda64::AnalogCamMode analog_cam_mode;
@@ -308,6 +309,23 @@ void recomp::set_multiplayer_mode(recomp::MultiplayerMode mode) {
     control_options_context.multiplayer_mode = mode;
     if (general_model_handle) {
         general_model_handle.DirtyVariable("multiplayer_mode");
+    }
+}
+
+static const char* const cheat_variable_names[(size_t)recomp::Cheat::Count] = {
+    "cheat_all_courts", "cheat_star_characters", "cheat_all_tournaments", "cheat_infinite_bounces",
+};
+
+recomp::CheatMode recomp::get_cheat(recomp::Cheat cheat) {
+    if ((size_t)cheat >= (size_t)recomp::Cheat::Count) return recomp::CheatMode::Off;
+    return control_options_context.cheats[(size_t)cheat];
+}
+
+void recomp::set_cheat(recomp::Cheat cheat, recomp::CheatMode mode) {
+    if ((size_t)cheat >= (size_t)recomp::Cheat::Count) return;
+    control_options_context.cheats[(size_t)cheat] = mode;
+    if (general_model_handle) {
+        general_model_handle.DirtyVariable(cheat_variable_names[(size_t)cheat]);
     }
 }
 
@@ -949,6 +967,9 @@ public:
         bind_option(constructor, "targeting_mode", &control_options_context.targeting_mode);
         bind_option(constructor, "background_input_mode", &control_options_context.background_input_mode);
         bind_option(constructor, "multiplayer_mode", &control_options_context.multiplayer_mode);
+        for (size_t i = 0; i < (size_t)recomp::Cheat::Count; i++) {
+            bind_option(constructor, cheat_variable_names[i], &control_options_context.cheats[i]);
+        }
         bind_option(constructor, "autosave_mode", &control_options_context.autosave_mode);
         bind_option(constructor, "camera_invert_mode", &control_options_context.camera_invert_mode);
         bind_option(constructor, "analog_cam_mode", &control_options_context.analog_cam_mode);

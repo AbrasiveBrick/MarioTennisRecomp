@@ -247,6 +247,10 @@ bool save_general_config(const std::filesystem::path& path) {
     zelda64::to_json(config_json["targeting_mode"], zelda64::get_targeting_mode());
     recomp::to_json(config_json["background_input_mode"], recomp::get_background_input_mode());
     recomp::to_json(config_json["multiplayer_mode"], recomp::get_multiplayer_mode());
+    recomp::to_json(config_json["cheat_all_courts"], recomp::get_cheat(recomp::Cheat::AllCourts));
+    recomp::to_json(config_json["cheat_star_characters"], recomp::get_cheat(recomp::Cheat::StarCharacters));
+    recomp::to_json(config_json["cheat_all_tournaments"], recomp::get_cheat(recomp::Cheat::AllTournaments));
+    recomp::to_json(config_json["cheat_infinite_bounces"], recomp::get_cheat(recomp::Cheat::InfiniteBounces));
     config_json["rumble_strength"] = recomp::get_rumble_strength();
     config_json["gyro_sensitivity"] = recomp::get_gyro_sensitivity();
     config_json["mouse_sensitivity"] = recomp::get_mouse_sensitivity();
@@ -264,6 +268,10 @@ void set_general_settings_from_json(const nlohmann::json& config_json) {
     zelda64::set_targeting_mode(from_or_default(config_json, "targeting_mode", zelda64::TargetingMode::Switch));
     recomp::set_background_input_mode(from_or_default(config_json, "background_input_mode", recomp::BackgroundInputMode::On));
     recomp::set_multiplayer_mode(from_or_default(config_json, "multiplayer_mode", recomp::MultiplayerMode::On));
+    recomp::set_cheat(recomp::Cheat::AllCourts, from_or_default(config_json, "cheat_all_courts", recomp::CheatMode::Off));
+    recomp::set_cheat(recomp::Cheat::StarCharacters, from_or_default(config_json, "cheat_star_characters", recomp::CheatMode::Off));
+    recomp::set_cheat(recomp::Cheat::AllTournaments, from_or_default(config_json, "cheat_all_tournaments", recomp::CheatMode::Off));
+    recomp::set_cheat(recomp::Cheat::InfiniteBounces, from_or_default(config_json, "cheat_infinite_bounces", recomp::CheatMode::Off));
     recomp::set_rumble_strength(from_or_default(config_json, "rumble_strength", 25));
     recomp::set_gyro_sensitivity(from_or_default(config_json, "gyro_sensitivity", 50));
     recomp::set_mouse_sensitivity(from_or_default(config_json, "mouse_sensitivity", is_steam_deck ? 50 : 0));

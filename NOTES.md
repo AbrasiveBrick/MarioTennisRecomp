@@ -405,6 +405,21 @@ the head-on banner view, not the overhead shot.
   transitions) before, 0 after. The title → menu transition is now seamless.
 - For reference, parallel_n64 in RetroArch builds the new menu over black there.
 
+## Cheats (2026-11-21)
+- Settings > General: All Courts, Star Characters, All Tournaments Cleared, Infinite Bounces, each Off/On
+  (general.json cheat_all_courts / cheat_star_characters / cheat_all_tournaments / cheat_infinite_bounces,
+  default Off; recomp::Cheat / CheatMode in include/recomp_input.h, bound in src/ui/ui_config.cpp, rows
+  and descriptions in assets/config_menu/general.rml). Applied every graphics task in mt_bonus.cpp
+  (apply_cheats), from the GameShark codes: 810653CC FFFF (courts), 810653CA FFFF (Star characters),
+  50000802 0000 + 81065278 EEEE (eight cup records), 8015B16B 0000 (bounce counter).
+- Checked in game with all four on: Court Select lists every court marked NEW; Player/Character Select
+  show "STAR R"; Tournament opens a cup select with all cups instead of going straight to the Mushroom
+  Cup. Infinite Bounces not verified yet: scripted A presses only toss the ball (the serve state cycles
+  4/1/5 and the score stays 0-0), so no rally happened.
+- The DK Jr. / Shy Guy unlock (always on) is unchanged.
+- Note for testing: MT_INPUT presses A on a timer, which mostly tosses the ball without completing a
+  serve; real rallies need a human player.
+
 ## Transfer Pak characters (issue #10)
 - The N64 game has 20 characters: IDs 16–19 are the Game Boy Color characters. ID 0x14 is the
   locked "?" icon used for DK Jr. and Shy Guy. A real transfer reads the GBC save (0xB08 bytes per
@@ -474,8 +489,12 @@ the head-on banner view, not the overhead shot.
   The intro spotlight mask (#12) loads it as 8-bit texels, which RT64 cannot reinterpret, so that
   read still goes through RDRAM. `MT_RDRAM_CAPTURE=1` restores the old behaviour.
 - Checked: title-demo score screens and the tournament pause menu are sharp (court lines smooth,
-  stair-stepped with MT_RDRAM_CAPTURE=1); the intro spotlight is unchanged. Not specifically
-  checked: the smash double replay, which was the reason 0x238040 went to RDRAM in v0.1.1 (black box).
+  stair-stepped with MT_RDRAM_CAPTURE=1); the intro spotlight is unchanged. The smash double replay
+  (the reason 0x238040 went to RDRAM in v0.1.1, black box) was not triggered in testing; the user saw
+  no black box in play since the change (2026-11-21), so it is considered fine.
+- Same for the menus' 304-wide screen copy at 0x229CC0 (menu transitions, e.g. picking a character
+  on Player Select: the old screen fades out from this copy and flashed at native resolution). Fixed
+  2026-11-21, confirmed by the user; MT_RDRAM_CAPTURE=1 also restores the old path for it.
 - Diagnostics: `MT_LOG_2D_ADDR=<hex>` limits MT_LOG_2D_ALL to frames that mention that address;
   `MT_LOG_2D_LEN=<s>` sets the window (default 8 s).
 
@@ -511,7 +530,11 @@ the head-on banner view, not the overhead shot.
   seg703: a reduced-detail mode the game uses for matches entered through Main Menu > Continue.
 - Checked: a fresh tournament has 0x80065242 = 0 and crisp character silhouettes in the recomp; a
   tournament resumed through Continue has 1 and blobs. RetroArch (ParaLLEl-RDP) in a fresh tournament
-  also has 0 and silhouettes. Not yet checked: RetroArch on the Continue path (expected: blobs too).
+  also has 0 and silhouettes.
+- Confirmed original behaviour (2026-11-21): the recomp's EEPROM (2 KB, same byte order as the first
+  2 KB of RetroArch's 0x48800-byte Mupen64Plus-Next .srm) copied into RetroArch, Continue -> the same
+  tournament: 0x80065242 = 1 and 0x8013678C = 1 there too, so resumed tournaments get blob player
+  shadows on the original game as well. Not a recomp bug.
 - RT64 renders these correctly; a Python F3DEX2 reference rasterizer on an RDRAM dump gave the same
   silhouette images as RT64.
 - Object table: 20 slots of 0x788 bytes at 0x800D8410 (func_800CCBE0), +0x14 id (-1 = free),
@@ -565,5 +588,42 @@ the head-on banner view, not the overhead shot.
   Measured in a tournament match: 33 -> 18 shared per frame. Still shared: the ball and its trail
   (on purpose, see above) and small groups whose matrices are outside the table (eight at 0x143210..,
   repeated draws at 0x063090). The user played a match on the fixed build (60 fps recording) and saw
-  few glitches. The general slowdown reported
+  few glitches.
+- Net posts (fixed 2026-11-21): the two blue net posts are one model (vertex 0x1367F8) drawn with
+  matrices 0x13B7C0 / 0x13B780 (x = -76.7 / +76.7), outside the object table, so they shared an ID
+  and an in-between frame could draw a post in the middle of the net (user: "the same as the
+  Bob-ombs, with the blue posts"). Rule: when a vertex group was drawn more than once in the last
+  task and this draw's matrix address was also used for that group in the last task, the matrix
+  address is mixed into the ID. Groups whose matrices change every task (ball + trail ring) never
+  qualify. MT_TAG_NO_MTX=1 turns it off. Confirmed fixed by the user in play.
+- Players' soft shadow meshes (fixed 2026-11-21): rebuilt every frame in alternating buffers
+  (0x13B638/0x13B4F8 and 0x13B698/0x13B558, matrices 0x13B980 / 0x13B9C0), so their vertex address
+  never matched the last task and RT64 matched them itself every frame. A draw whose vertex data was
+  not seen last task now gets an ID from its matrix if that matrix carried such a draw last task.
+  MT_TAG_DBG prints "[tags-auto]" (draws left to RT64) when the list changes: 0 in normal frames now,
+  32-piece hit-sparkle bursts on their first frame. MT_TAG_NO_MTXONLY=1 turns it off.
+- OPEN: the player stutters for ~0.3-0.5 s right after a strike or serve (user report, also in 60 fps
+  recordings: the change around Mario alternates big/small, e.g. 33 21 25 12 29 10 25 7 after a serve,
+  smooth before it). Not rumble (user tested Rumble 0), not ID changes (0 changes counted), not
+  automatic matching (Mario's parts all have stable IDs), same with tags off. So RT64 has the right
+  pairing but does not blend the swing poses. Next idea: our groups use G_EX_INTERPOLATE_DECOMPOSE
+  (position/rotation/scale/skew); a swing turns the arm/racket a long way per game frame and may
+  squash/stretch, which may not decompose; try G_EX_INTERPOLATE_SIMPLE (mode bit 2 = 0, then scale/skew
+  are skipped) for the player parts, and check RT64's decomposition for a rejection path.
+  Tried 2026-11-21: MT_TAG_SIMPLE=1 (gEXMatrixGroupSimple flags) does NOT fix it: serves were smooth in
+  both modes in that run, and after rally strikes the simple run showed the same pattern (33 41 13 35 11
+  32 10 28 9 ...). It shows mostly after rally strikes while the player runs hard, not on every swing.
+  Next: check the camera (it pans fast after a strike), the projection matrix tags (only modelview is
+  tagged) and whether the players' root matrices (object slots 0/1) are double-buffered.
+- Star wipe into a match (user: glitch on the second, opening star): drawn by building a ~64x55 star
+  mask in the corner of the menu buffer 0x000400, switching to a colour image at 0x000000 (overlapping
+  0x000400 by 1 KB) and compositing 64x16 blocks from the mask and the scene (0x3D6000). The soft,
+  rounded edge is the same with MT_GPU_COPY_ALL=1 (not the RDRAM routing). A red sliver shows on the
+  star tip for a couple of frames as it opens (frames ~152-154 of a 60 fps recording); not yet traced.
+- Tried and backed out (#14): locking the VI clock to the monitor's exact refresh (59.951 Hz here,
+  from QueryDisplayConfig vSyncFreq; DwmGetCompositionTimingInfo's rate is measured and wanders) with
+  Framerate = Display. A 60.000 vs 59.951 Hz mismatch can only cost one repeated picture every
+  ~20-40 s, and 60/120 fps captures showed no improvement (ddagrab itself drops/doubles frames at a
+  non-matching rate). The game delivers every frame on time (MT_FPS: 30-31 tasks/s, no gfx task
+  over 40 ms in a match). The general slowdown reported
   in Piranha Challenge / Ring Shot (#14) is not looked at yet.

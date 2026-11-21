@@ -46,6 +46,9 @@ code or data: the game is translated from your own ROM when it starts.
 - Saves work as on the cartridge.
 - Bonus characters: Donkey Kong Jr. and Shy Guy are unlocked from the start.
 - Transfer Pak characters: Alex, Harry, Nina and Kate from the Game Boy Color version are on Character Select without a Transfer Pak (level 25, starting stats).
+- Optional cheats, all off by default (Settings → General): **All Courts**, **Star Characters**,
+  **All Tournaments Cleared** and **Infinite Bounces**. The first three are saved with your game
+  like normal unlocks, so they stay unlocked after you switch the cheat off.
 - A new sunny court launcher screen.
 - DirectX 12 or Vulkan (Settings → Graphics → Graphics API).
 - Optional CRT shaders from RetroArch (CRT-Royale, CRT-Royale Fast, CRT-Lottes) via librashader

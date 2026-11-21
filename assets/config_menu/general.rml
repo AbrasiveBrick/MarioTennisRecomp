@@ -114,6 +114,118 @@
                             <label class="config-option__tab-label" for="multiplayer_disabled">Off</label>
                         </div>
                     </div>
+                    <div class="config-option" data-event-mouseover="set_cur_config_index(11)" id="conf-general__cheat_all_courts">
+                        <label class="config-option__title">All Courts</label>
+                        <div class="config-option__list">
+                            <input
+                                type="radio"
+                                data-event-blur="set_cur_config_index(-1)"
+                                data-event-focus="set_cur_config_index(11)"
+                                name="cheat_all_courts"
+                                data-checked="cheat_all_courts"
+                                value="Off"
+                                id="cheat_all_courts_off"
+                                style="nav-up: #multiplayer_enabled"
+                            />
+                            <label class="config-option__tab-label" for="cheat_all_courts_off">Off</label>
+
+                            <input
+                                type="radio"
+                                data-event-blur="set_cur_config_index(-1)"
+                                data-event-focus="set_cur_config_index(11)"
+                                name="cheat_all_courts"
+                                data-checked="cheat_all_courts"
+                                value="On"
+                                id="cheat_all_courts_on"
+                                style="nav-up: #multiplayer_disabled"
+                            />
+                            <label class="config-option__tab-label" for="cheat_all_courts_on">On</label>
+                        </div>
+                    </div>
+                    <div class="config-option" data-event-mouseover="set_cur_config_index(12)" id="conf-general__cheat_star_characters">
+                        <label class="config-option__title">Star Characters</label>
+                        <div class="config-option__list">
+                            <input
+                                type="radio"
+                                data-event-blur="set_cur_config_index(-1)"
+                                data-event-focus="set_cur_config_index(12)"
+                                name="cheat_star_characters"
+                                data-checked="cheat_star_characters"
+                                value="Off"
+                                id="cheat_star_characters_off"
+                                style="nav-up: #cheat_all_courts_off"
+                            />
+                            <label class="config-option__tab-label" for="cheat_star_characters_off">Off</label>
+
+                            <input
+                                type="radio"
+                                data-event-blur="set_cur_config_index(-1)"
+                                data-event-focus="set_cur_config_index(12)"
+                                name="cheat_star_characters"
+                                data-checked="cheat_star_characters"
+                                value="On"
+                                id="cheat_star_characters_on"
+                                style="nav-up: #cheat_all_courts_on"
+                            />
+                            <label class="config-option__tab-label" for="cheat_star_characters_on">On</label>
+                        </div>
+                    </div>
+                    <div class="config-option" data-event-mouseover="set_cur_config_index(13)" id="conf-general__cheat_all_tournaments">
+                        <label class="config-option__title">All Tournaments Cleared</label>
+                        <div class="config-option__list">
+                            <input
+                                type="radio"
+                                data-event-blur="set_cur_config_index(-1)"
+                                data-event-focus="set_cur_config_index(13)"
+                                name="cheat_all_tournaments"
+                                data-checked="cheat_all_tournaments"
+                                value="Off"
+                                id="cheat_all_tournaments_off"
+                                style="nav-up: #cheat_star_characters_off"
+                            />
+                            <label class="config-option__tab-label" for="cheat_all_tournaments_off">Off</label>
+
+                            <input
+                                type="radio"
+                                data-event-blur="set_cur_config_index(-1)"
+                                data-event-focus="set_cur_config_index(13)"
+                                name="cheat_all_tournaments"
+                                data-checked="cheat_all_tournaments"
+                                value="On"
+                                id="cheat_all_tournaments_on"
+                                style="nav-up: #cheat_star_characters_on"
+                            />
+                            <label class="config-option__tab-label" for="cheat_all_tournaments_on">On</label>
+                        </div>
+                    </div>
+                    <div class="config-option" data-event-mouseover="set_cur_config_index(14)" id="conf-general__cheat_infinite_bounces">
+                        <label class="config-option__title">Infinite Bounces</label>
+                        <div class="config-option__list">
+                            <input
+                                type="radio"
+                                data-event-blur="set_cur_config_index(-1)"
+                                data-event-focus="set_cur_config_index(14)"
+                                name="cheat_infinite_bounces"
+                                data-checked="cheat_infinite_bounces"
+                                value="Off"
+                                id="cheat_infinite_bounces_off"
+                                style="nav-up: #cheat_all_tournaments_off"
+                            />
+                            <label class="config-option__tab-label" for="cheat_infinite_bounces_off">Off</label>
+
+                            <input
+                                type="radio"
+                                data-event-blur="set_cur_config_index(-1)"
+                                data-event-focus="set_cur_config_index(14)"
+                                name="cheat_infinite_bounces"
+                                data-checked="cheat_infinite_bounces"
+                                value="On"
+                                id="cheat_infinite_bounces_on"
+                                style="nav-up: #cheat_all_tournaments_on"
+                            />
+                            <label class="config-option__tab-label" for="cheat_infinite_bounces_on">On</label>
+                        </div>
+                    </div>
                 </div>
                 <!-- Descriptions -->
                 <div class="config__wrapper">
@@ -173,6 +285,18 @@
                         <br/>
                         <br/>
                         Connect the controllers before starting a multiplayer match.
+                    </p>
+                    <p data-if="cur_config_index == 11">
+                        <b>Cheat.</b> Makes every court selectable. Courts unlocked this way are saved with your game, so switching this off again does not lock them.
+                    </p>
+                    <p data-if="cur_config_index == 12">
+                        <b>Cheat.</b> Gives every character their Star version. Saved with your game once unlocked.
+                    </p>
+                    <p data-if="cur_config_index == 13">
+                        <b>Cheat.</b> Marks every tournament cup as won, with everything that unlocks. Saved with your game once unlocked.
+                    </p>
+                    <p data-if="cur_config_index == 14">
+                        <b>Cheat.</b> The ball may bounce any number of times before you have to return it. Only while this is on.
                     </p>
                     <p data-if="cur_config_index == 9">
                         Inverts the camera controls for the analog camera if it's enabled. <b>None</b> is the default.

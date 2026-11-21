@@ -18,6 +18,29 @@
 #include <cstdint>
 #include <cstring>
 
+// Cheats (Settings > General, all off by default), from the well-known GameShark codes for Mario
+// Tennis (USA), applied every graphics task like the unlock above:
+//   All courts            810653CC FFFF        unlock bits for the courts (0x800653CC)
+//   Star characters       810653CA FFFF        "Star" versions of every character (0x800653CA)
+//   All tournaments       50000802 0000 + 81065278 EEEE   eight cup records from 0x80065278 marked won
+//   Infinite bounces      8015B16B 0000        the bounce counter in the match state, kept at 0
+// The first three are save data: the game writes them to the save like normal unlocks, so they stay
+// after the cheat is switched off. Infinite bounces only lasts while it is on.
+#include "recomp_input.h"
+
+namespace {
+    void apply_cheats(uint8_t* rdram) {
+        auto b = [&](uint32_t addr, uint8_t v) { rdram[addr ^ 3] = v; };
+        using recomp::Cheat; using recomp::CheatMode;
+        if (recomp::get_cheat(Cheat::AllCourts) == CheatMode::On) { b(0x653CC, 0xFF); b(0x653CD, 0xFF); }
+        if (recomp::get_cheat(Cheat::StarCharacters) == CheatMode::On) { b(0x653CA, 0xFF); b(0x653CB, 0xFF); }
+        if (recomp::get_cheat(Cheat::AllTournaments) == CheatMode::On) {
+            for (uint32_t i = 0; i < 8; i++) { b(0x65278 + 2 * i, 0xEE); b(0x65279 + 2 * i, 0xEE); }
+        }
+        if (recomp::get_cheat(Cheat::InfiniteBounces) == CheatMode::On) b(0x15B16B, 0x00);
+    }
+}
+
 namespace {
     constexpr uint32_t gb_present = 0x65468;
     constexpr uint32_t gb_slot = 0x653D8;
@@ -65,4 +88,5 @@ extern "C" void mt_bonus_characters(uint8_t* rdram) {
     uint8_t& unlocks = rdram[0x653C8 ^ 3];
     unlocks |= 0x03;
     add_transfer_pak_characters(rdram);
+    apply_cheats(rdram);
 }
