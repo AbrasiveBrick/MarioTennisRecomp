@@ -155,6 +155,120 @@
 			{
 				opacity: 1;
 			}
+			/* Online Play panel: replaces the menu in the same column. */
+			.online
+			{
+				display: flex;
+				flex-direction: column;
+				width: 520dp;
+				margin-top: 40dp;
+				font-family: "Barlow";
+				color: #EAEDE3B3;
+			}
+			.online__heading
+			{
+				font-family: "Barlow Condensed";
+				font-weight: 600;
+				font-size: 40dp;
+				color: #F3F4EE;
+				margin-bottom: 16dp;
+			}
+			.online__row
+			{
+				display: flex;
+				flex-direction: row;
+				align-items: center;
+				margin-bottom: 14dp;
+			}
+			.online__label
+			{
+				width: 150dp;
+				font-size: 22dp;
+				color: #EAEDE399;
+			}
+			.online__segment
+			{
+				display: flex;
+				flex-direction: row;
+			}
+			.online__chip
+			{
+				height: 44dp;
+				padding: 0 18dp;
+				margin-right: 8dp;
+				border-radius: 8dp;
+				font-size: 22dp;
+				line-height: 44dp;
+				color: #EAEDE3B3;
+				background-color: #EAEDE30F;
+				transition: background-color color 0.12s cubic-out;
+			}
+			.online__chip:hover, .online__chip:focus
+			{
+				color: #F3F4EE;
+				background-color: #EAEDE326;
+			}
+			.online__chip--on, .online__chip--on:hover, .online__chip--on:focus
+			{
+				color: #0E1A17;
+				background-color: #D7EE3A;
+			}
+			.online__field
+			{
+				width: 340dp;
+				height: 44dp;
+				padding: 0 12dp;
+				border-radius: 8dp;
+				font-size: 22dp;
+				line-height: 44dp;
+				color: #F3F4EE;
+				background-color: #00000066;
+				border-width: 1dp;
+				border-color: #EAEDE333;
+			}
+			.online__field:focus
+			{
+				border-color: #D7EE3A;
+			}
+			.online__field--short
+			{
+				width: 120dp;
+			}
+			.online__value
+			{
+				min-width: 60dp;
+				font-size: 22dp;
+				text-align: center;
+				color: #F3F4EE;
+			}
+			.online__hint
+			{
+				margin-left: 12dp;
+				font-size: 18dp;
+				color: #EAEDE366;
+			}
+			.online__note
+			{
+				font-size: 18dp;
+				line-height: 26dp;
+				color: #EAEDE380;
+				margin: 4dp 0 16dp 0;
+			}
+			.online__status
+			{
+				font-size: 20dp;
+				line-height: 28dp;
+				color: #EAEDE3CC;
+				margin-bottom: 12dp;
+			}
+			.online__status--error
+			{
+				color: #FF9B8A;
+			}
+			.online .launcher__menu
+			{
+				margin-top: 8dp;
+			}
 			.launcher .bottom-left
 			{
 				bottom: 32dp;
@@ -178,7 +292,7 @@
 					<div class="launcher__kicker">N64: Recompiled</div>
 					<div class="launcher__title" data-if="!ss_has_logo">Mario Tennis</div>
 					<div class="launcher__logo-box" data-if="ss_has_logo"><img class="launcher__logo" data-attr-src="ss_logo_src" /></div>
-					<div class="launcher__menu">
+					<div class="launcher__menu" data-if="!net_open">
 						<button data-if="!mm_rom_valid" onclick="select_rom" class="menu-list-item" autofocus>
 							<div class="menu-list-item__bullet"></div>
 							<div class="menu-list-item__label">Select ROM</div>
@@ -186,6 +300,10 @@
 						<button data-if="mm_rom_valid" onclick="start_game" class="menu-list-item" autofocus>
 							<div class="menu-list-item__bullet"></div>
 							<div class="menu-list-item__label">Start game</div>
+						</button>
+						<button data-if="mm_rom_valid" onclick="open_online" class="menu-list-item">
+							<div class="menu-list-item__bullet"></div>
+							<div class="menu-list-item__label">Online play</div>
 						</button>
 						<button onclick="open_controls" class="menu-list-item">
 							<div class="menu-list-item__bullet"></div>
@@ -200,6 +318,53 @@
 							<div class="menu-list-item__bullet"></div>
 							<div class="menu-list-item__label">Exit</div>
 						</button>
+					</div>
+					<div class="online" data-if="net_open">
+						<div class="online__heading">Online play</div>
+						<div class="online__row">
+							<div class="online__label">Role</div>
+							<div class="online__segment">
+								<button class="online__chip" data-class-online__chip--on="net_host" onclick="net_set_host" autofocus>Host (player 1)</button>
+								<button class="online__chip" data-class-online__chip--on="!net_host" onclick="net_set_join">Join (player 2)</button>
+							</div>
+						</div>
+						<div class="online__row" data-if="!net_host">
+							<div class="online__label">Host address</div>
+							<input type="text" class="online__field" data-value="net_address" maxlength="255" />
+						</div>
+						<div class="online__row">
+							<div class="online__label">UDP port</div>
+							<input type="text" class="online__field online__field--short" data-value="net_port" maxlength="5" />
+						</div>
+						<div class="online__row" data-if="net_host">
+							<div class="online__label">Input delay</div>
+							<button class="online__chip" onclick="net_delay_down">-</button>
+							<div class="online__value">{{net_delay}}</div>
+							<button class="online__chip" onclick="net_delay_up">+</button>
+							<div class="online__hint">frames (30 per second)</div>
+						</div>
+						<div class="online__row">
+							<div class="online__label">Your controls</div>
+							<button class="online__chip" onclick="net_pad_next">{{net_pad_label}}</button>
+						</div>
+						<div class="online__note" data-if="net_host">The other player needs this UDP port to reach you: forward it on your router for internet play. They play on a copy of your save and your cheat settings.</div>
+						<div class="online__note" data-if="!net_host">You play on a copy of the host's save; your own save isn't changed.</div>
+						<div class="online__status" data-class-online__status--error="net_failed" data-if="net_status != ''">{{net_status}}</div>
+						<div class="launcher__menu">
+							<button class="menu-list-item" onclick="net_start" data-if="!net_busy">
+								<div class="menu-list-item__bullet"></div>
+								<div class="menu-list-item__label" data-if="net_host">Start hosting</div>
+								<div class="menu-list-item__label" data-if="!net_host">Connect</div>
+							</button>
+							<button class="menu-list-item" onclick="net_cancel" data-if="net_busy">
+								<div class="menu-list-item__bullet"></div>
+								<div class="menu-list-item__label">Cancel</div>
+							</button>
+							<button class="menu-list-item" onclick="close_online">
+								<div class="menu-list-item__bullet"></div>
+								<div class="menu-list-item__label">Back</div>
+							</button>
+						</div>
 					</div>
 				</div>
 				<div class="bottom-left">

@@ -22,6 +22,7 @@
 //   MT_DET_SEED=<n>              seed for the stirring outside netplay (default 0)
 //   MT_STATE_DUMP=<dir>:<f,f,..> write all of RDRAM (32-bit words in host byte order) at these frames
 #include <atomic>
+#include <cstdarg>
 #include <chrono>
 #include <condition_variable>
 #include <cstdint>
@@ -34,6 +35,7 @@
 #include <filesystem>
 #include <vector>
 
+#include "mt_netplay.h"
 #include "recomp_input.h"
 #include "zelda_config.h"
 
@@ -110,6 +112,7 @@ struct Config {
     FILE* replay = nullptr;
     FILE* hash_log = nullptr;
     int players = 0;    // ports forced present (0 = leave to local multiplayer settings)
+    std::string pad;    // what drives this PC's player in netplay (see mt_net_pad_choice)
 };
 
 Config cfg;
@@ -125,6 +128,23 @@ const char* env(const char* name) {
     return (v != nullptr && v[0] != '\0') ? v : nullptr;
 }
 
+// Messages go to the log and, for the launcher's Online Play panel, to the session status line.
+std::mutex status_mutex;
+std::string status_text;
+
+void report(const char* fmt, ...) {
+    char buf[512];
+    va_list args;
+    va_start(args, fmt);
+    std::vsnprintf(buf, sizeof(buf), fmt, args);
+    va_end(args);
+    fprintf(stderr, "[net] %s\n", buf);
+    std::lock_guard lock{ status_mutex };
+    status_text = buf;
+}
+
+std::atomic<bool> cancel_connect{ false };
+
 // Replay files: "MTRP" + u32 version + u32 players + u32 reserved, then 16 bytes per frame (4 pads).
 constexpr uint32_t replay_version = 1;
 
@@ -138,7 +158,7 @@ void load_config() {
         std::string s = join;
         size_t colon = s.rfind(':');
         if (colon == std::string::npos) {
-            fprintf(stderr, "[net] MT_NET_JOIN must be <address>:<port>\n");
+            report("MT_NET_JOIN must be <address>:<port>");
             cfg.mode = Mode::Off;
         }
         else {
@@ -154,14 +174,14 @@ void load_config() {
         uint32_t header[4]{};
         if (cfg.replay == nullptr || std::fread(header, sizeof(header), 1, cfg.replay) != 1 ||
             std::memcmp(header, "MTRP", 4) != 0 || header[1] != replay_version) {
-            fprintf(stderr, "[net] can't read replay %s\n", path);
+            report("can't read replay %s", path);
             if (cfg.replay) std::fclose(cfg.replay);
             cfg.replay = nullptr;
         }
         else {
             cfg.mode = Mode::Replay;
             cfg.players = (int)header[2];
-            fprintf(stderr, "[net] playing back %s (%d players)\n", path, cfg.players);
+            report("playing back %s (%d players)", path, cfg.players);
         }
     }
     if (cfg.mode == Mode::Host || cfg.mode == Mode::Join) {
@@ -170,7 +190,7 @@ void load_config() {
     if (const char* path = env("MT_REPLAY_RECORD")) {
         cfg.record = std::fopen(path, "wb");
         if (cfg.record == nullptr) {
-            fprintf(stderr, "[net] can't write replay %s\n", path);
+            report("can't write replay %s", path);
         }
         else if (cfg.mode == Mode::Off) {
             cfg.mode = Mode::Local;
@@ -181,7 +201,7 @@ void load_config() {
     if (const char* path = env("MT_HASH_LOG")) {
         cfg.hash_log = std::fopen(path, "wb");
         if (cfg.hash_log == nullptr) {
-            fprintf(stderr, "[net] can't write hash log %s\n", path);
+            report("can't write hash log %s", path);
         }
         else {
             uint32_t header[4] = { 0, 1, hash_block, num_blocks };
@@ -190,6 +210,7 @@ void load_config() {
             if (cfg.mode == Mode::Off) cfg.mode = Mode::Local;
         }
     }
+    if (const char* p = env("MT_NET_PAD")) cfg.pad = p;
     if (env("MT_DETERMINISTIC") && cfg.mode == Mode::Off) cfg.mode = Mode::Local;
     cfg.deterministic = cfg.mode != Mode::Off;
 }
@@ -197,6 +218,8 @@ void load_config() {
 void ensure_config() {
     std::call_once(cfg_once, load_config);
 }
+
+
 
 // ---------------------------------------------------------------------------------------------------
 // Network
@@ -379,7 +402,7 @@ void handle_packet(const uint8_t* data, size_t size) {
     }
     else if (h.type == PktBye) {
         if (!net.failed.exchange(true)) {
-            fprintf(stderr, "[net] the other player left the session\n");
+            report("the other player left the session");
         }
         net.cv.notify_all();
     }
@@ -428,7 +451,7 @@ void net_thread_func() {
         }
         if (!net.failed.load() && now - net.last_recv > std::chrono::seconds(15)) {
             net.failed = true;
-            fprintf(stderr, "[net] no packets from the other player for 15 seconds; continuing without them\n");
+            report("no packets from the other player for 15 seconds; continuing without them");
             net.cv.notify_all();
         }
     }
@@ -486,8 +509,9 @@ bool fetch_host_save(uint64_t expected_hash) {
             net_send_raw(&req, sizeof(req));
         }
         if (done) break;
+        if (cancel_connect.load()) return false;
         if (clk::now() - start > std::chrono::seconds(20)) {
-            fprintf(stderr, "[net] couldn't get the host's save data\n");
+            report("couldn't get the host's save data");
             return false;
         }
         // The host's input packets arrive here too (and are dropped; they're resent later), so listen
@@ -506,7 +530,7 @@ bool fetch_host_save(uint64_t expected_hash) {
         }
     }
     if (!session_save.empty() && hash_bytes(session_save.data(), session_save.size()) != expected_hash) {
-        fprintf(stderr, "[net] the host's save data arrived damaged\n");
+        report("the host's save data arrived damaged");
         return false;
     }
     return true;
@@ -533,7 +557,7 @@ void net_connect() {
             bound = bind(net.sock, reinterpret_cast<sockaddr*>(&addr), sizeof(addr)) == 0;
         }
         if (!bound) {
-            fprintf(stderr, "[net] can't listen on UDP port %d\n", cfg.net_port);
+            report("can't listen on UDP port %d", cfg.net_port);
             net.failed = true;
             return;
         }
@@ -541,10 +565,19 @@ void net_connect() {
             cfg.seed = splitmix64((uint64_t)clk::now().time_since_epoch().count());
         }
         load_host_session_data();
-        fprintf(stderr, "[net] hosting on UDP port %d, waiting for player 2 (input delay %d frames)\n",
+        report("hosting on UDP port %d, waiting for player 2 (input delay %d frames)",
             cfg.net_port, cfg.delay);
         uint8_t buf[2048];
         while (true) {
+            if (wait_readable(200) <= 0) {
+                if (cancel_connect.load()) {
+                    close_socket(net.sock);
+                    net.sock = bad_socket;
+                    net.failed = true;
+                    return;
+                }
+                continue;
+            }
             sockaddr_storage from{};
             socklen_t from_len = sizeof(from);
             int n = (int)recvfrom(net.sock, reinterpret_cast<char*>(buf), sizeof(buf), 0,
@@ -554,7 +587,7 @@ void net_connect() {
             std::memcpy(&h, buf, sizeof(h));
             if (h.magic != net_magic || h.type != PktHello) continue;
             if (h.version != net_version) {
-                fprintf(stderr, "[net] player 2 runs a different netplay version (%u, we have %u)\n", h.version, net_version);
+                report("player 2 runs a different netplay version (%u, we have %u)", h.version, net_version);
                 continue;
             }
             HelloPacket hello;
@@ -573,7 +606,7 @@ void net_connect() {
         addrinfo* res = nullptr;
         std::string port = std::to_string(cfg.net_port);
         if (getaddrinfo(cfg.net_address.c_str(), port.c_str(), &hints, &res) != 0 || res == nullptr) {
-            fprintf(stderr, "[net] can't resolve %s\n", cfg.net_address.c_str());
+            report("can't resolve %s", cfg.net_address.c_str());
             net.failed = true;
             return;
         }
@@ -582,12 +615,12 @@ void net_connect() {
         int family = res->ai_family;
         freeaddrinfo(res);
         if (!net_open_socket(family)) {
-            fprintf(stderr, "[net] can't open a UDP socket\n");
+            report("can't open a UDP socket");
             net.failed = true;
             return;
         }
         uint32_t nonce = (uint32_t)splitmix64((uint64_t)clk::now().time_since_epoch().count());
-        fprintf(stderr, "[net] joining %s:%d\n", cfg.net_address.c_str(), cfg.net_port);
+        report("joining %s:%d", cfg.net_address.c_str(), cfg.net_port);
         uint8_t buf[2048];
         auto start = clk::now();
         while (true) {
@@ -600,7 +633,7 @@ void net_connect() {
                     std::memcpy(&w, buf, sizeof(w));
                     if (w.h.magic == net_magic && w.h.type == PktWelcome && w.nonce == nonce) {
                         if (w.h.version != net_version) {
-                            fprintf(stderr, "[net] the host runs a different netplay version (%u, we have %u)\n", w.h.version, net_version);
+                            report("the host runs a different netplay version (%u, we have %u)", w.h.version, net_version);
                             net.failed = true;
                             return;
                         }
@@ -616,8 +649,14 @@ void net_connect() {
                     }
                 }
             }
+            if (cancel_connect.load()) {
+                close_socket(net.sock);
+                net.sock = bad_socket;
+                net.failed = true;
+                return;
+            }
             if (clk::now() - start > std::chrono::seconds(60)) {
-                fprintf(stderr, "[net] no answer from the host after 60 seconds; playing alone\n");
+                report("no answer from the host after 60 seconds");
                 net.failed = true;
                 return;
             }
@@ -625,7 +664,7 @@ void net_connect() {
     }
     net.connected = true;
     net.last_recv = clk::now();
-    fprintf(stderr, "[net] connected: you are player %d, input delay %d frames\n", cfg.mode == Mode::Host ? 1 : 2, cfg.delay);
+    report("connected: you are player %d, input delay %d frames", cfg.mode == Mode::Host ? 1 : 2, cfg.delay);
     net.thread = std::thread(net_thread_func);
 }
 
@@ -742,7 +781,7 @@ void net_tick(uint8_t* rdram) {
             net.cv.wait_for(lock, std::chrono::milliseconds(100));
             if (!warned && clk::now() - wait_start > std::chrono::seconds(2)) {
                 warned = true;
-                fprintf(stderr, "[net] waiting for the other player (frame %u)\n", frame);
+                report("waiting for the other player (frame %u)", frame);
             }
         }
         if (frame < net.remote_have.size() && net.remote_have[frame]) theirs = net.remote[frame];
@@ -776,7 +815,7 @@ void mt_net_on_init() {
     static bool done = false;
     if (done || !(cfg.mode == Mode::Host || cfg.mode == Mode::Join)) return;
     done = true;
-    net_connect();
+    if (!net.connected) net_connect();  // the launcher's Online Play panel may have connected already
     if (net.connected && cfg.mode == Mode::Join) {
         for (int c = 0; c < num_cheats; c++) {
             recomp::set_cheat((recomp::Cheat)c, (recomp::CheatMode)session_cheats[c]);
@@ -819,7 +858,7 @@ extern "C" void mt_net_frame(uint8_t* rdram) {
     case Mode::Replay: {
         Pad pads[max_ports]{};
         if (cfg.replay != nullptr && std::fread(pads, sizeof(pads), 1, cfg.replay) != 1) {
-            fprintf(stderr, "[net] replay ended at frame %u\n", frame);
+            report("replay ended at frame %u", frame);
             std::fclose(cfg.replay);
             cfg.replay = nullptr;
         }
@@ -870,4 +909,97 @@ void mt_net_shutdown() {
     if (cfg.record) std::fclose(cfg.record);
     if (cfg.hash_log) std::fclose(cfg.hash_log);
     cfg.record = cfg.hash_log = nullptr;
+}
+
+// What drives this PC's player in netplay: "" (keyboard and every controller), "keyboard", or a
+// controller number from 1 (used by recomp::mt_port_source).
+const char* mt_net_pad_choice() {
+    ensure_config();
+    return cfg.pad.c_str();
+}
+
+// ---------------------------------------------------------------------------------------------------
+// Launcher control
+
+namespace {
+std::atomic<int> session_state_value{ (int)mt_net::SessionState::Idle };
+std::thread session_thread;
+
+void reset_session() {
+    if (net.sock != bad_socket) close_socket(net.sock);
+    net.sock = bad_socket;
+    net.connected = false;
+    net.failed = false;
+    net.peer_len = 0;
+    net.local.clear();
+    net.remote.clear();
+    net.remote_have.clear();
+    net.remote_contiguous = 0;
+    net.peer_ack = 0;
+    net.latest_local_hash_frame = 0xFFFFFFFFu;
+    session_save.clear();
+    cfg.mode = Mode::Off;
+    cfg.players = 0;
+    cfg.deterministic = false;
+}
+}
+
+bool mt_net::env_configured() {
+    ensure_config();
+    return env("MT_NET_HOST") != nullptr || env("MT_NET_JOIN") != nullptr;
+}
+
+void mt_net::begin_session(const SessionOptions& options) {
+    ensure_config();
+    if (session_state() == SessionState::Connecting) return;
+    if (session_thread.joinable()) session_thread.join();
+    reset_session();
+    cfg.mode = options.host ? Mode::Host : Mode::Join;
+    cfg.net_address = options.address;
+    cfg.net_port = options.port;
+    cfg.delay = std::max(0, std::min(30, options.delay));
+    cfg.pad = options.pad;
+    cfg.players = 2;
+    cfg.deterministic = true;
+    if (cfg.mode == Mode::Host && !env("MT_DET_SEED")) cfg.seed = 0;  // a fresh seed per session
+    cancel_connect = false;
+    {
+        std::lock_guard lock{ status_mutex };
+        status_text = options.host ? "Opening the port..." : "Looking up the host...";
+    }
+    session_state_value = (int)SessionState::Connecting;
+    session_thread = std::thread([] {
+        net_connect();
+        if (net.connected) {
+            session_state_value = (int)SessionState::Connected;
+            return;
+        }
+        bool cancelled = cancel_connect.load();
+        reset_session();
+        session_state_value = (int)(cancelled ? SessionState::Idle : SessionState::Failed);
+    });
+}
+
+void mt_net::cancel_session() {
+    cancel_connect = true;
+    if (session_thread.joinable()) session_thread.join();
+    if (net.connected) {
+        // Connected but the game never started: tell the other player.
+        PacketHeader bye = make_header(PktBye);
+        for (int i = 0; i < 3; i++) net_send_raw(&bye, sizeof(bye));
+        net.stop = true;
+        if (net.thread.joinable()) net.thread.join();
+        net.stop = false;
+    }
+    reset_session();
+    session_state_value = (int)SessionState::Idle;
+}
+
+mt_net::SessionState mt_net::session_state() {
+    return (mt_net::SessionState)session_state_value.load();
+}
+
+std::string mt_net::session_status() {
+    std::lock_guard lock{ status_mutex };
+    return status_text;
 }

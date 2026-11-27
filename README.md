@@ -57,22 +57,23 @@ code or data: the game is translated from your own ROM when it starts.
 
 ## Online play (experimental)
 Two players can play over the internet or a LAN. Both run the same build of Mario Tennis: Recompiled with the
-same ROM; the game runs on both PCs in lockstep and only controller inputs are sent. For now it's set up with
-environment variables when starting the game:
+same ROM; the game runs on both PCs in lockstep and only controller inputs are sent.
 
-- Player 1 (host): `MT_NET_HOST=7777 ./MarioTennisRecompiled`. The host's UDP port (7777 here) must be
-  reachable by player 2 (forward it on the router for internet play).
-- Player 2: `MT_NET_JOIN=<host address>:7777 ./MarioTennisRecompiled`.
-- Optional: `MT_NET_PAD=keyboard` or `MT_NET_PAD=<n>` (controller number, from 1) picks what controls your
-  player; by default the keyboard and every controller do. Useful for testing two copies on one PC.
-- Optional, host only: `MT_NET_DELAY=<frames>` (default 2). The game runs at 30 frames per second, so 2 frames
-  is about 67 ms of input delay; raise it if the game stutters on a slow connection.
+On the launcher, choose **Online play**:
+- Player 1 picks **Host**, sets the UDP port (7777 by default) and the input delay, then **Start hosting**. The
+  port must be reachable by player 2: forward it on the router for internet play.
+- Player 2 picks **Join**, enters the host's address and port, then **Connect**.
+- **Your controls** picks what moves your player: the keyboard and every controller (default), the keyboard
+  only, or one controller.
 
-Press Start on the launcher on both sides. The host's game waits for player 2 before booting. Each player uses
-their own controller (or keyboard) as player 1 would locally; the host is player 1 in the game and the other
-player is player 2. Player 2 plays on a copy of the host's save and the host's cheat settings, so both see the
+The game starts on both PCs as soon as they connect. The host is player 1 in the game, the other player is
+player 2. The input delay is in game frames (30 per second), so 2 is about 67 ms; raise it if the game stutters
+on a slow connection. Player 2 plays on a copy of the host's save and the host's cheat settings, so both see the
 same unlocks; player 2's own save isn't touched. If the two games ever drift apart the log shows
 `[net] DESYNC`; please report it with both players' logs.
+
+The same can be set from the command line for scripts: `MT_NET_HOST=<port>` or `MT_NET_JOIN=<address>:<port>`,
+plus `MT_NET_DELAY=<frames>` and `MT_NET_PAD=keyboard` or `MT_NET_PAD=<controller number>`.
 
 ## Building (Windows)
 Requirements: Visual Studio 2022+ Build Tools, LLVM/clang-cl, CMake, Ninja, Python 3 and Git Bash.
