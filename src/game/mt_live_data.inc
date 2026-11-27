@@ -2821,8 +2821,13 @@ static const MtLiveHook mt_live_hooks[] = {
     { "func_800346A0", 0x8003473C }, // event 5
     { "func_800346A0", 0x8003475C }, // event 6
     { "func_80033C34", 0x80033CAC }, // event 7
-    { "func_80031D60", 0x80031D90 }, // event 8
-    { "func_seg78_80100010", 0x80100018 }, // event 9
+    { "func_80031F40", 0x800321A4 }, // event 8
+    { "func_80031F40", 0x80031FF0 }, // event 9
+    { "func_80033A00", 0x80033A68 }, // event 10
+    { "func_80041678", 0x80041678 }, // event 11
+    { "func_80041698", 0x80041698 }, // event 12
+    { "func_80031D60", 0x80031D90 }, // event 13
+    { "func_seg78_80100010", 0x80100018 }, // event 14
 };
 
 // Native implementations, by the name the game's symbol has.
@@ -2985,8 +2990,13 @@ static void mt_live_run_hook(uint8_t* rdram, recomp_context* ctx, uint32_t index
         case 5: { float mt_cull_x_scale(void); ctx->f0.fl *= mt_cull_x_scale(); } break;
         case 6: { float mt_cull_x_scale(void); ctx->f0.fl *= mt_cull_x_scale(); } break;
         case 7: { uint32_t mt_wide_aspect_bits(uint32_t); ctx->r1 = (int32_t)mt_wide_aspect_bits((uint32_t)ctx->r1); } break;
-        case 8: { void mt_spin_yield(uint8_t* rdram, uint32_t id); mt_spin_yield(rdram, 0); } break;
-        case 9: { void mt_spin_yield(uint8_t* rdram, uint32_t id); mt_spin_yield(rdram, 0); } break;
+        case 8: { void mt_net_frame(uint8_t*); mt_net_frame(rdram); } break;
+        case 9: { uint32_t mt_net_stir(uint32_t); ctx->r2 = (int32_t)mt_net_stir((uint32_t)ctx->r2); } break;
+        case 10: { void mt_net_pad(uint8_t*, uint32_t, uint32_t, uint32_t); mt_net_pad(rdram, (uint32_t)ctx->r19, (uint32_t)ctx->r17, (uint32_t)ctx->r18); } break;
+        case 11: { void mt_net_save_access(void); mt_net_save_access(); } break;
+        case 12: { void mt_net_save_access(void); mt_net_save_access(); } break;
+        case 13: { void mt_spin_yield(uint8_t* rdram, uint32_t id); mt_spin_yield(rdram, 0); } break;
+        case 14: { void mt_spin_yield(uint8_t* rdram, uint32_t id); mt_spin_yield(rdram, 0); } break;
     }
 }
 }

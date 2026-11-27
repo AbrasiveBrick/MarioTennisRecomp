@@ -550,6 +550,8 @@ void recomp::set_input_controller_filter(int index) {
 // controllers are connected (plus one more for the keyboard in On + Keyboard mode). Testing aid:
 // MT_PLAYERS=n reports n players regardless of controllers (player 2 can then be driven with
 // MT_INPUT_P2).
+int mt_net_forced_players();
+
 recomp::PortSource recomp::mt_port_source(int port) {
     PortSource src{};
     if (port < 0 || port > 3) return src;
@@ -584,6 +586,10 @@ recomp::PortSource recomp::mt_port_source(int port) {
     }
     if (forced_players > 0 && port < forced_players) {
         src.present = true;
+    }
+    // Netplay and replays fix the number of connected ports, so every machine boots the same game.
+    if (const int net_players = mt_net_forced_players(); net_players > 0) {
+        src.present = port < net_players;
     }
     return src;
 }

@@ -124,6 +124,7 @@ set (SOURCES
     ${CMAKE_SOURCE_DIR}/src/game/mt_dlfix.cpp
     ${CMAKE_SOURCE_DIR}/src/game/mt_prof.cpp
     ${CMAKE_SOURCE_DIR}/src/game/mt_widescreen.cpp
+    ${CMAKE_SOURCE_DIR}/src/game/mt_netplay.cpp
 
     ${CMAKE_SOURCE_DIR}/src/ui/ui_renderer.cpp
     ${CMAKE_SOURCE_DIR}/src/ui/ui_state.cpp
@@ -258,7 +259,7 @@ if (WIN32)
     )
 
     target_sources(MarioTennisRecompiled PRIVATE ${CMAKE_SOURCE_DIR}/icons/app.rc)
-    target_link_libraries(MarioTennisRecompiled PRIVATE SDL2 Winmm.lib)
+    target_link_libraries(MarioTennisRecompiled PRIVATE SDL2 Winmm.lib Ws2_32.lib)
 endif()
 
 if (APPLE)

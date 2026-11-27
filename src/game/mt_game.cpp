@@ -98,7 +98,12 @@ void mt::register_overlays() {
 }
 #endif
 
+void mt_net_on_init();
+
 void mt::on_init(uint8_t* rdram, recomp_context* ctx) {
+    // Netplay: connect to the other player before the game boots (src/game/mt_netplay.cpp).
+    mt_net_on_init();
+
     // IPL3 copies ROM 0x1000..+1 MiB to the header entrypoint (0x80300000).
     recomp::do_rom_read(rdram, (gpr)(int32_t)boot_vram, 0x10001000, 0x100000);
 
