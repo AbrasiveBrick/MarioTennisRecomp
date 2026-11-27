@@ -50,14 +50,25 @@
 				animation: 0.6s cubic-out 1 mt-fade-in;
 			}
 			/* Settles the left side so the menu reads over any artwork. */
+			/* Near-solid behind the title and menu, then a fade before the middle of the picture.
+			   (The renderer draws horizontal-gradient but not linear-gradient, hence two layers.) */
 			.launcher__scrim
 			{
 				position: absolute;
 				top: 0;
 				bottom: 0;
 				left: 0;
-				width: 70%;
-				decorator: horizontal-gradient(#0E1A17F0 #0E1A1700);
+				width: 38%;
+				background-color: #0B0F0EEB;
+			}
+			.launcher__scrim-fade
+			{
+				position: absolute;
+				top: 0;
+				bottom: 0;
+				left: 38%;
+				width: 26%;
+				decorator: horizontal-gradient(#0B0F0EEB #0B0F0E00);
 			}
 			.launcher__logo-box
 			{
@@ -85,8 +96,9 @@
 			{
 				font-family: "Barlow";
 				font-weight: normal;
-				font-size: 20dp;
-				color: #EAEDE399;
+				font-size: 22dp;
+				font-weight: 500;
+				color: #EAEDE3C2;
 			}
 			.launcher__title
 			{
@@ -119,7 +131,7 @@
 				height: 52dp;
 				padding: 0 20dp;
 				border-radius: 8dp;
-				color: #EAEDE3B3;
+				color: #EAEDE3DE;
 				background-color: #FFFFFF00;
 				decorator: none;
 				transition: background-color color 0.12s cubic-out;
@@ -127,8 +139,9 @@
 			.launcher .menu-list-item__label
 			{
 				font-family: "Barlow";
-				font-weight: normal;
-				font-size: 26dp;
+				font-weight: 500;
+				font-size: 28dp;
+				font-effect: shadow(0dp 1dp #00000099);
 				letter-spacing: 0dp;
 				text-transform: none;
 			}
@@ -163,7 +176,7 @@
 				width: 520dp;
 				margin-top: 40dp;
 				font-family: "Barlow";
-				color: #EAEDE3B3;
+				color: #EAEDE3DE;
 			}
 			.online__heading
 			{
@@ -184,7 +197,7 @@
 			{
 				width: 150dp;
 				font-size: 22dp;
-				color: #EAEDE399;
+				color: #EAEDE3C2;
 			}
 			.online__segment
 			{
@@ -199,7 +212,7 @@
 				border-radius: 8dp;
 				font-size: 22dp;
 				line-height: 44dp;
-				color: #EAEDE3B3;
+				color: #EAEDE3DE;
 				background-color: #EAEDE30F;
 				transition: background-color color 0.12s cubic-out;
 			}
@@ -245,13 +258,13 @@
 			{
 				margin-left: 12dp;
 				font-size: 18dp;
-				color: #EAEDE366;
+				color: #EAEDE3A3;
 			}
 			.online__note
 			{
 				font-size: 18dp;
 				line-height: 26dp;
-				color: #EAEDE380;
+				color: #EAEDE3B8;
 				margin: 4dp 0 16dp 0;
 			}
 			.online__status
@@ -278,7 +291,7 @@
 			{
 				font-family: "Barlow";
 				font-size: 16dp;
-				color: #EAEDE366;
+				color: #EAEDE3A3;
 			}
 		</style>
 	</head>
@@ -288,6 +301,7 @@
 				<svg src="mt-court.svg" class="launcher__court" data-if="!ss_has_background" />
 				<div class="launcher__art" data-if="ss_has_background" data-style-decorator="ss_background_decorator"></div>
 				<div class="launcher__scrim" data-if="ss_has_background"></div>
+				<div class="launcher__scrim-fade" data-if="ss_has_background"></div>
 				<div class="launcher__main">
 					<div class="launcher__kicker">N64: Recompiled</div>
 					<div class="launcher__title" data-if="!ss_has_logo">Mario Tennis</div>
