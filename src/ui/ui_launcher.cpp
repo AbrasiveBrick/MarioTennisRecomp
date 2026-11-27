@@ -333,6 +333,34 @@ public:
                 model_handle.DirtyVariable("net_pad_label");
             }
         );
+        // Up/Down in a text field: the field would keep them (caret movement), which traps controller
+        // navigation. param is ":<up ids>;<down ids>", each a '|'-separated list; the first id that is
+        // currently in the document gets focus.
+        recompui::register_event(listener, "net_field_nav",
+            [](const std::string& param, Rml::Event& event) {
+                const int key = event.GetParameter<int>("key_identifier", 0);
+                if (key != Rml::Input::KI_UP && key != Rml::Input::KI_DOWN) return;
+                std::string spec = param.empty() || param[0] != ':' ? param : param.substr(1);
+                size_t semi = spec.find(';');
+                std::string targets = (key == Rml::Input::KI_UP) ? spec.substr(0, semi)
+                    : (semi == std::string::npos ? std::string{} : spec.substr(semi + 1));
+                Rml::ElementDocument* doc = event.GetCurrentElement()->GetOwnerDocument();
+                size_t p = 0;
+                while (p <= targets.size()) {
+                    size_t bar = targets.find('|', p);
+                    std::string id = targets.substr(p, bar == std::string::npos ? std::string::npos : bar - p);
+                    Rml::Element* target = id.empty() ? nullptr : doc->GetElementById(id);
+                    // data-if rows stay in the document but hidden.
+                    if (target && target->IsVisible(true)) {
+                        target->Focus(true);
+                        event.StopPropagation();
+                        return;
+                    }
+                    if (bar == std::string::npos) break;
+                    p = bar + 1;
+                }
+            }
+        );
         recompui::register_event(listener, "net_start",
             [](const std::string& param, Rml::Event& event) {
                 if (!net_busy) net_start();

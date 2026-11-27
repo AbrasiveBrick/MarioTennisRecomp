@@ -216,6 +216,17 @@
 				background-color: #EAEDE30F;
 				transition: background-color color 0.12s cubic-out;
 			}
+			/* Chips and fields must be focusable with nav for controller and keyboard play; plain
+			   buttons are not focusable in this UI by default. */
+			.online__chip, .online__field
+			{
+				focus: auto;
+				tab-index: auto;
+				nav-up: auto;
+				nav-down: auto;
+				nav-left: auto;
+				nav-right: auto;
+			}
 			.online__chip:hover, .online__chip:focus
 			{
 				color: #F3F4EE;
@@ -338,28 +349,29 @@
 						<div class="online__row">
 							<div class="online__label">Role</div>
 							<div class="online__segment">
-								<button class="online__chip" data-class-online__chip--on="net_host" onclick="net_set_host" autofocus>Host (player 1)</button>
-								<button class="online__chip" data-class-online__chip--on="!net_host" onclick="net_set_join">Join (player 2)</button>
+								<button id="net_role_host" class="online__chip" data-class-online__chip--on="net_host" onclick="net_set_host" autofocus>Host (player 1)</button>
+								<button id="net_role_join" class="online__chip" data-class-online__chip--on="!net_host" onclick="net_set_join">Join (player 2)</button>
 							</div>
 						</div>
 						<div class="online__row" data-if="!net_host">
 							<div class="online__label">Host address</div>
-							<input type="text" class="online__field" data-value="net_address" maxlength="255" />
+							<!-- Text fields keep Left/Right for the caret; Up/Down (d-pad, stick) move to the next control. -->
+							<input id="net_address" type="text" class="online__field" data-value="net_address" maxlength="255" onkeydown="net_field_nav:net_role_join|net_role_host;net_port" />
 						</div>
 						<div class="online__row">
 							<div class="online__label">UDP port</div>
-							<input type="text" class="online__field online__field--short" data-value="net_port" maxlength="5" />
+							<input id="net_port" type="text" class="online__field online__field--short" data-value="net_port" maxlength="5" onkeydown="net_field_nav:net_address|net_role_host;net_delay_down|net_pad" />
 						</div>
 						<div class="online__row" data-if="net_host">
 							<div class="online__label">Input delay</div>
-							<button class="online__chip" onclick="net_delay_down">-</button>
+							<button id="net_delay_down" class="online__chip" onclick="net_delay_down">-</button>
 							<div class="online__value">{{net_delay}}</div>
 							<button class="online__chip" onclick="net_delay_up">+</button>
 							<div class="online__hint">frames (30 per second)</div>
 						</div>
 						<div class="online__row">
 							<div class="online__label">Your controls</div>
-							<button class="online__chip" onclick="net_pad_next">{{net_pad_label}}</button>
+							<button id="net_pad" class="online__chip" onclick="net_pad_next">{{net_pad_label}}</button>
 						</div>
 						<div class="online__note" data-if="net_host">The other player needs this UDP port to reach you: forward it on your router for internet play. They play on a copy of your save and your cheat settings.</div>
 						<div class="online__note" data-if="!net_host">You play on a copy of the host's save; your own save isn't changed.</div>
