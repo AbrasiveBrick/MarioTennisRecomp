@@ -66,15 +66,6 @@ public:
 
     }
     void load_document() override {
-        // Mario Tennis recomp: launcher splash artwork (assets/mt-splash.png), registered under the name
-        // launcher.rml's <img> uses. The UI only loads images it has been given the bytes of.
-        {
-            std::ifstream splash_file{ zelda64::get_asset_path("mt-splash.png"), std::ios::binary };
-            if (splash_file) {
-                std::vector<char> bytes{ std::istreambuf_iterator<char>(splash_file), std::istreambuf_iterator<char>() };
-                recompui::queue_image_from_bytes_file("?/mt-splash", bytes);
-            }
-        }
 		launcher_context = recompui::create_context(zelda64::get_asset_path("launcher.rml"));
     }
     void register_events(recompui::UiEventListenerInstancer& listener) override {
