@@ -8,7 +8,7 @@
                 <div class="config__wrapper" data-event-mouseout="set_cur_config_index(-1)" id="conf-general__wrapper">
                     <!-- targeting mode -->
                     <div class="config-option" data-event-mouseover="set_cur_config_index(1)">
-                        <label class="config-option__title">Rumble Strength</label>
+                        <label class="config-option__title">Rumble strength</label>
                         <div class="config-option__range-wrapper config-option__list">
                             <label class="config-option__range-label">{{rumble_strength}}%</label>
                             <input
@@ -27,7 +27,7 @@
 
 
                     <div class="config-option" data-event-mouseover="set_cur_config_index(4)">
-                        <label class="config-option__title">Joystick Deadzone</label>
+                        <label class="config-option__title">Joystick deadzone</label>
                         <div class="config-option__range-wrapper config-option__list">
                             <label class="config-option__range-label">{{joystick_deadzone}}%</label>
                             <input
@@ -46,7 +46,7 @@
 
 
                     <div class="config-option" data-event-mouseover="set_cur_config_index(5)" id="conf-general__Background-Input">
-                        <label class="config-option__title">Background Input</label>
+                        <label class="config-option__title">Background input</label>
                         <div class="config-option__list">
                             <input
                                 type="radio"
@@ -75,7 +75,7 @@
                     </div>
 
                     <div class="config-option" data-event-mouseover="set_cur_config_index(10)" id="conf-general__Multiplayer">
-                        <label class="config-option__title">Local Multiplayer</label>
+                        <label class="config-option__title">Local multiplayer</label>
                         <div class="config-option__list">
                             <input
                                 type="radio"
@@ -99,7 +99,7 @@
                                 id="multiplayer_keyboard"
                                 style="nav-up: #bg_input_disabled"
                             />
-                            <label class="config-option__tab-label" for="multiplayer_keyboard">On + Keyboard</label>
+                            <label class="config-option__tab-label" for="multiplayer_keyboard">On + keyboard</label>
 
                             <input
                                 type="radio"
@@ -115,7 +115,7 @@
                         </div>
                     </div>
                     <div class="config-option" data-event-mouseover="set_cur_config_index(11)" id="conf-general__cheat_all_courts">
-                        <label class="config-option__title">All Courts</label>
+                        <label class="config-option__title">All courts</label>
                         <div class="config-option__list">
                             <input
                                 type="radio"
@@ -143,7 +143,7 @@
                         </div>
                     </div>
                     <div class="config-option" data-event-mouseover="set_cur_config_index(12)" id="conf-general__cheat_star_characters">
-                        <label class="config-option__title">Star Characters</label>
+                        <label class="config-option__title">Star characters</label>
                         <div class="config-option__list">
                             <input
                                 type="radio"
@@ -171,7 +171,7 @@
                         </div>
                     </div>
                     <div class="config-option" data-event-mouseover="set_cur_config_index(13)" id="conf-general__cheat_all_tournaments">
-                        <label class="config-option__title">All Tournaments Cleared</label>
+                        <label class="config-option__title">All tournaments cleared</label>
                         <div class="config-option__list">
                             <input
                                 type="radio"
@@ -199,7 +199,7 @@
                         </div>
                     </div>
                     <div class="config-option" data-event-mouseover="set_cur_config_index(14)" id="conf-general__cheat_infinite_bounces">
-                        <label class="config-option__title">Infinite Bounces</label>
+                        <label class="config-option__title">Infinite bounces</label>
                         <div class="config-option__list">
                             <input
                                 type="radio"

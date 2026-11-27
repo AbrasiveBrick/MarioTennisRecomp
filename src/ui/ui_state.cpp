@@ -222,7 +222,8 @@ public:
                 {"LatoLatin-Italic.ttf", false},
                 {"LatoLatin-Bold.ttf", false},
                 {"LatoLatin-BoldItalic.ttf", false},
-                {"Barlow-Regular.ttf", false},            // Mario Tennis launcher (SIL OFL 1.1)
+                {"Barlow-Regular.ttf", false},            // Mario Tennis launcher and menus (SIL OFL 1.1)
+                {"Barlow-Medium.ttf", false},             // menu labels and tabs
                 {"BarlowCondensed-SemiBold.ttf", false},  // launcher title
                 {"NotoEmoji-Regular.ttf", true},
                 {"promptfont/promptfont.ttf", false},

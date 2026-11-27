@@ -11,7 +11,7 @@ ModDetailsPanel::ModDetailsPanel(Element *parent) : Element(parent) {
     set_height(100.0f, Unit::Percent);
     set_display(Display::Flex);
     set_flex_direction(FlexDirection::Column);
-    set_background_color(Color{ 190, 184, 219, 25 });
+    set_background_color(Color{ 234, 237, 227, 25 });
 
     ContextId context = get_current_context();
 
@@ -29,7 +29,7 @@ ModDetailsPanel::ModDetailsPanel(Element *parent) : Element(parent) {
             thumbnail_image = context.create_element<Image>(thumbnail_container, "");
             thumbnail_image->set_width(100.0f);
             thumbnail_image->set_height(100.0f);
-            thumbnail_image->set_background_color(Color{ 190, 184, 219, 25 });
+            thumbnail_image->set_background_color(Color{ 234, 237, 227, 25 });
         }
 
         header_details_container = context.create_element<Container>(header_container, FlexDirection::Column, JustifyContent::SpaceEvenly);

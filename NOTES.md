@@ -158,7 +158,12 @@ from above at night (ITF proportions, 48 px per metre, one ball), drawn by hand 
 side, styled in the `<style>` block of `assets/launcher.rml`. Fonts: Barlow Regular and Barlow
 Condensed SemiBold (SIL OFL, `assets/Barlow-LICENSE.txt`), loaded in `src/ui/ui_state.cpp`; RmlUi
 registers them by weight (400 and 600). The ball-yellow dot marks the selected row and is the only accent.
-Settings menus keep the stock fonts.
+Settings menus (2026-11-27) were unslopped to match: `assets/recomp.rcss` is generated from `assets/scss`
+(`npx sass --no-source-map --no-charset main.scss ../recomp.rcss` with sass 1.89, output matches byte for byte).
+Barlow 400/500 everywhere, no letter spacing or uppercase, sentence-case labels, neutral ramp
+(`_colors.scss`), one accent (ball yellow #D7EE3A) for focus, selection and notes; focus no longer pulses. The
+C++-built elements (`src/ui/elements`, mod menu, prompts) use the same colours and spacing. `$color-a` stays
+blue because it is the N64 A button in the controller map.
 
 ScreenScraper artwork (optional, `src/ui/ui_screenscraper.cpp`): with libcurl and developer credentials, a
 background thread hashes the stored ROM (CRC32 + size), calls `jeuInfos.php` (systemeid 14), and downloads the

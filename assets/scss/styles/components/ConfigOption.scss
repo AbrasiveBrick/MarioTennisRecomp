@@ -87,7 +87,7 @@
         }
         
         &[checked] {
-            background-color: $color-a;
+            background-color: $color-secondary;
         }
     }
 
@@ -159,7 +159,7 @@
         background-color: $color-text-dim;
         
         .rmlui-window:not([mouse-active]) &:focus {
-            @include border($color-a);
+            @include border($color-secondary);
             animation: $focus-anim-bg;
         }
 
@@ -278,7 +278,7 @@
             background-color: $color-text-dim;
             
             .rmlui-window:not([mouse-active]) &:focus {
-                @include border($color-a);
+                @include border($color-secondary);
                 animation: $focus-anim-bg;
             }
 
