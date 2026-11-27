@@ -91,7 +91,8 @@ Technical notes on how the port works are in [NOTES.md](NOTES.md).
 - [librashader](https://github.com/SnowflakePowered/librashader) by Ronny Chan (MPL-2.0 / GPL-3.0).
 - CRT-Royale by TroggleMonkey (GPL-2.0+), CRT-Lottes by Timothy Lottes (public domain), from the libretro
   [slang-shaders](https://github.com/libretro/slang-shaders) collection. See [slang-shaders/README.md](slang-shaders/README.md).
-- Luckiest Guy font by Astigmatic (Apache 2.0).
+- Barlow and Barlow Condensed fonts by Jeremy Tribby (SIL OFL 1.1, licence in `assets/Barlow-LICENSE.txt`).
+- Launcher layout made with [unslop](https://github.com/heydamir/unslop) by Damir Sokolovsky (CC BY 4.0).
 
 Mario Tennis is a trademark of Nintendo. This project is not affiliated with or endorsed by Nintendo.
 

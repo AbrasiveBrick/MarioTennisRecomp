@@ -61,7 +61,7 @@ ignores the TLB, so the game's TLB-mapped model data (0x02xxxxxx) was handed to 
 physical addresses. The game's copy (0x80033160) is now `mt_osVirtualToPhysical`, implemented in
 `src/game/mt_tlb.cpp` on top of the software TLB.
 
-Launcher: original Mario Tennis splash (`assets/mt-splash.svg`, layout in `assets/launcher.rml`)
+Launcher: night hard court drawn in `assets/mt-court.svg`, layout in `assets/launcher.rml`
 and tennis-ball app icon (`icons/`). Mods button removed. `tools/capture_run.ps1` takes window
 screenshots (`-NoAutostart` for the launcher).
 
@@ -151,12 +151,13 @@ character select.
   keeps Main Volume (Zelda-only options removed from the `.rml` files).
 
 ## Launcher look
-Sunny court theme (picked by the user from three mockups): `assets/mt-splash.svg` is original
-artwork (sky, sun, clouds, hills, hedge, grass court, ball); the old night-stadium art is kept in
-`build_assets/mt-splash-night-backup.svg`. Title outline/shadow and pill-shaped menu buttons are
-styled in the `<style>` block of `assets/launcher.rml`. Title and buttons use Luckiest Guy
-(`assets/LuckiestGuy-Regular.ttf`, Apache 2.0, licence in `assets/LuckiestGuy-LICENSE.txt`, from
-google/fonts), loaded in `src/ui/ui_state.cpp`, uppercase because its lowercase is small caps.
+Redesigned 2026-11-27 with [unslop](https://github.com/heydamir/unslop) at the owner's request; the
+generated splash picture and Luckiest Guy are gone. `assets/mt-court.svg` is a two-tone hard court seen
+from above at night (ITF proportions, 48 px per metre, one ball), drawn by hand in SVG and shown with
+`<svg src>` (lunasvg), so no image bytes are registered from C++. Title and menu sit on the calm left
+side, styled in the `<style>` block of `assets/launcher.rml`. Fonts: Barlow Regular and Barlow
+Condensed SemiBold (SIL OFL, `assets/Barlow-LICENSE.txt`), loaded in `src/ui/ui_state.cpp`; RmlUi
+registers them by weight (400 and 600). The ball-yellow dot marks the selected row and is the only accent.
 Settings menus keep the stock fonts.
 
 ## Save data
@@ -355,13 +356,6 @@ the head-on banner view, not the overhead shot.
 - Implemented as a hook before 0x80033CA8 (mt.us.toml) that sets $at = 0x3FE40000 when `mt_wide_hack()` is on.
   Trial switch only: `MT_WIDE_HACK=1` (release\MarioTennisRecompiled-Debug	ry-16x9-hack.bat). Verified: main
   menu, Play Mode and a match render 16:9 with Stretch.
-
-## Launcher splash art (2026-11-18)
-- The launcher background is now `assets/mt-splash.png` (pixel-art "Tennis" picture supplied by the project owner).
-  The UI only loads images it is given the bytes of (and decodes PNG/DDS, not JPEG), so `ui_launcher.cpp`
-  registers the file as `?/mt-splash` before loading launcher.rml, which shows it with `<img>` at full window
-  width, vertically centred. The text title is hidden (the art has its own logo). lunasvg can't draw embedded
-  `<image>` elements, so the art can't go inside mt-splash.svg (kept, unused).
 
 ## Audio popping (issues #3 / #7)
 - Cause: the game's audio loop (0x802EDC0C, seg19) waits while `osAiGetStatus` reports

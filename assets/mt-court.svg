@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Mario Tennis: Recompiled launcher background. Drawn in code for this project: a two-tone hard
+     court seen from above at night, true ITF proportions, one ball on the deuce-side service box.
+     1600x900, sliced to fill the window. Title and menu are laid out by launcher.rml on the calm left side. -->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 900" preserveAspectRatio="xMidYMid slice">
+  <defs>
+    <linearGradient id="surround" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#0E1A17"/>
+      <stop offset="0.45" stop-color="#12241F"/>
+      <stop offset="1" stop-color="#152A24"/>
+    </linearGradient>
+    <linearGradient id="court" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#1A3A50"/>
+      <stop offset="1" stop-color="#1F4560"/>
+    </linearGradient>
+    <radialGradient id="ball" cx="0.38" cy="0.34" r="0.7">
+      <stop offset="0" stop-color="#EEFA6A"/>
+      <stop offset="0.6" stop-color="#CFE336"/>
+      <stop offset="1" stop-color="#9DB21E"/>
+    </radialGradient>
+  </defs>
+  <rect width="1600" height="900" fill="url(#surround)"/>
+  <g transform="translate(1130 470) rotate(-28)">
+    <rect x="-618.5" y="-292.1" width="1237.0" height="584.2" fill="#000000" fill-opacity="0.10"/>
+    <rect x="-570.5" y="-263.3" width="1141.0" height="526.6" fill="url(#court)"/>
+        <rect x="-570.5" y="-264.7" width="1141.0" height="2.9" fill="#ECEEE4"/>
+    <rect x="-570.5" y="261.8" width="1141.0" height="2.9" fill="#ECEEE4"/>
+    <rect x="-570.5" y="-199.0" width="1141.0" height="2.9" fill="#ECEEE4"/>
+    <rect x="-570.5" y="196.1" width="1141.0" height="2.9" fill="#ECEEE4"/>
+    <rect x="-571.9" y="-263.3" width="2.9" height="526.6" fill="#ECEEE4"/>
+    <rect x="569.0" y="-263.3" width="2.9" height="526.6" fill="#ECEEE4"/>
+    <rect x="-308.6" y="-197.5" width="2.9" height="395.0" fill="#ECEEE4"/>
+    <rect x="305.8" y="-197.5" width="2.9" height="395.0" fill="#ECEEE4"/>
+    <rect x="-307.2" y="-1.4" width="614.4" height="2.9" fill="#ECEEE4"/>
+    <rect x="-570.5" y="-1.4" width="9.6" height="2.9" fill="#ECEEE4"/>
+    <rect x="560.9" y="-1.4" width="9.6" height="2.9" fill="#ECEEE4"/>
+    <!-- net: band, its shadow, posts -->
+    <rect x="-2.9" y="-307.2" width="19.2" height="614.3" fill="#000000" fill-opacity="0.22"/>
+    <rect x="-2.4" y="-307.2" width="4.8" height="614.3" fill="#F4F5EE"/>
+    <circle cx="0" cy="-307.2" r="4.8" fill="#C9CCC4"/>
+    <circle cx="0" cy="307.2" r="4.8" fill="#C9CCC4"/>
+    <!-- ball and its shadow -->
+    <g transform="translate(172.8 -100.8) scale(1.4) translate(-172.8 100.8)">
+    <ellipse cx="178.5" cy="-93.6" rx="10.8" ry="8.2" fill="#000000" fill-opacity="0.32"/>
+    <circle cx="172.8" cy="-100.8" r="10.3" fill="url(#ball)"/>
+    <path d="M 163.3 -104.7 C 169.7 -101.3 169.7 -95.1 166.4 -92.8" fill="none" stroke="#F6F8EC" stroke-width="1.2" stroke-linecap="round"/>
+    <path d="M 179.2 -108.8 C 175.9 -106.5 175.9 -100.3 182.3 -96.9" fill="none" stroke="#F6F8EC" stroke-width="1.2" stroke-linecap="round"/>
+    </g>
+  </g>
+</svg>

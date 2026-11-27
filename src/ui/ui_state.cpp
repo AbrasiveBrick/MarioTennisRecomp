@@ -222,7 +222,8 @@ public:
                 {"LatoLatin-Italic.ttf", false},
                 {"LatoLatin-Bold.ttf", false},
                 {"LatoLatin-BoldItalic.ttf", false},
-                {"LuckiestGuy-Regular.ttf", false},   // Mario Tennis launcher title/buttons (Apache 2.0)
+                {"Barlow-Regular.ttf", false},            // Mario Tennis launcher (SIL OFL 1.1)
+                {"BarlowCondensed-SemiBold.ttf", false},  // launcher title
                 {"NotoEmoji-Regular.ttf", true},
                 {"promptfont/promptfont.ttf", false},
             };
