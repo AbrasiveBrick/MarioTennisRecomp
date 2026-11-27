@@ -240,13 +240,6 @@ if (WIN32)
             "${CMAKE_SOURCE_DIR}/lib/rt64/src/contrib/dxc/bin/x64/dxcompiler.dll"
             $<TARGET_FILE_DIR:MarioTennisRecompiled>)
 
-    # The game runs from its own folder (see main.cpp), so it needs its UI assets and controller
-    # database next to the executable.
-    add_custom_command(TARGET MarioTennisRecompiled POST_BUILD
-        COMMAND ${CMAKE_COMMAND} -E copy_directory "${CMAKE_SOURCE_DIR}/assets" "$<TARGET_FILE_DIR:MarioTennisRecompiled>/assets"
-        COMMAND ${CMAKE_COMMAND} -E copy_if_different "${CMAKE_SOURCE_DIR}/recompcontrollerdb.txt" $<TARGET_FILE_DIR:MarioTennisRecompiled>
-        COMMAND ${CMAKE_COMMAND} -E copy_directory "${CMAKE_SOURCE_DIR}/slang-shaders" "$<TARGET_FILE_DIR:MarioTennisRecompiled>/slang-shaders")
-
     # Slang shaders need librashader.dll next to the exe (optional: without it the Shader option does nothing).
     # Point LIBRASHADER_DLL at a build of https://github.com/SnowflakePowered/librashader (see README).
     set(LIBRASHADER_DLL "" CACHE FILEPATH "Path to librashader.dll, copied next to the executable")
@@ -372,3 +365,10 @@ build_pixel_shader(MarioTennisRecompiled "shaders/InterfacePS.hlsl" "shaders/Int
 target_sources(MarioTennisRecompiled PRIVATE ${SOURCES})
 
 set_property(TARGET MarioTennisRecompiled PROPERTY VS_DEBUGGER_WORKING_DIRECTORY "${CMAKE_SOURCE_DIR}")
+
+# The game runs from its own folder (see main.cpp), so it needs its UI assets and controller
+# database next to the executable.
+add_custom_command(TARGET MarioTennisRecompiled POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E copy_directory "${CMAKE_SOURCE_DIR}/assets" "$<TARGET_FILE_DIR:MarioTennisRecompiled>/assets"
+    COMMAND ${CMAKE_COMMAND} -E copy_if_different "${CMAKE_SOURCE_DIR}/recompcontrollerdb.txt" $<TARGET_FILE_DIR:MarioTennisRecompiled>
+    COMMAND ${CMAKE_COMMAND} -E copy_directory "${CMAKE_SOURCE_DIR}/slang-shaders" "$<TARGET_FILE_DIR:MarioTennisRecompiled>/slang-shaders")
