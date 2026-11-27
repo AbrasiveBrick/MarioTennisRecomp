@@ -11,6 +11,11 @@
 //     for a ScreenScraper member account, which raises the request quota);
 //   - values baked in at build time with -DMT_SS_DEVID=... -DMT_SS_DEVPASSWORD=... (never committed).
 // Set MT_SS_DISABLE=1 to turn the lookup off. MT_SS_API replaces the API base URL (for testing).
+//
+// Launcher background: the official Mario Tennis artwork is loaded from Nintendo's site by link
+// (launcher_background_url below) on every launch, decoded in memory and never saved, so no copyrighted
+// image is in the repository. It needs no credentials and wins over ScreenScraper's fanart.
+// MT_LAUNCHER_BG_URL replaces the link (for testing); MT_LAUNCHER_BG_URL=none turns it off.
 
 #include "mt_screenscraper.h"
 
@@ -30,6 +35,7 @@
 #ifdef MT_HAVE_CURL
 #include <curl/curl.h>
 #include "json/json.hpp"
+#include "../../lib/rt64/src/contrib/stb/stb_image.h"
 #endif
 
 #ifndef MT_SS_DEVID_DEFAULT
@@ -45,6 +51,27 @@ std::mutex result_mutex;
 mt_ss::Artwork result;
 std::atomic<bool> result_ready{ false };
 std::atomic<bool> started{ false };
+std::atomic<bool> background_started{ false };
+
+constexpr const char* launcher_background_url =
+    "https://www.nintendo.com/eu/media/images/10_share_images/games_15/nintendo_7/SI_N64_MarioTennis_image1600w.jpg";
+
+// Merges a finished job's images into the pending result.
+void publish(mt_ss::Artwork&& art) {
+    std::lock_guard lock{ result_mutex };
+    if (!art.background.empty()) {
+        result.background = std::move(art.background);
+    }
+    if (!art.background_rgba.empty()) {
+        result.background_rgba = std::move(art.background_rgba);
+        result.background_width = art.background_width;
+        result.background_height = art.background_height;
+    }
+    if (!art.logo.empty()) {
+        result.logo = std::move(art.logo);
+    }
+    result_ready.store(true);
+}
 
 #ifdef MT_HAVE_CURL
 
@@ -217,11 +244,40 @@ void fetch(std::filesystem::path rom_path, std::string rom_name) {
     }
     std::fprintf(stderr, "[mt] ScreenScraper artwork loaded (background: %s, logo: %s).\n",
         art.background.empty() ? "no" : "yes", art.logo.empty() ? "no" : "yes");
-    {
-        std::lock_guard lock{ result_mutex };
-        result = std::move(art);
+    publish(std::move(art));
+}
+
+// Downloads the launcher background by link and decodes it (JPEG or PNG) to RGBA in memory.
+void fetch_background(std::string url) {
+    CURL* curl = curl_easy_init();
+    if (curl == nullptr) {
+        return;
     }
-    result_ready.store(true);
+    std::vector<char> bytes;
+    long status = 0;
+    bool ok = http_get(curl, url, bytes, &status);
+    curl_easy_cleanup(curl);
+    if (!ok) {
+        std::fprintf(stderr, "[mt] Launcher background download failed (HTTP %ld); using the built-in court.\n", status);
+        return;
+    }
+    int width = 0, height = 0, channels = 0;
+    stbi_uc* pixels = stbi_load_from_memory(reinterpret_cast<const stbi_uc*>(bytes.data()), static_cast<int>(bytes.size()),
+        &width, &height, &channels, 4);
+    if (pixels == nullptr || width <= 0 || height <= 0) {
+        std::fprintf(stderr, "[mt] Launcher background could not be decoded; using the built-in court.\n");
+        if (pixels) {
+            stbi_image_free(pixels);
+        }
+        return;
+    }
+    mt_ss::Artwork art;
+    art.background_rgba.assign(reinterpret_cast<char*>(pixels), reinterpret_cast<char*>(pixels) + size_t(width) * height * 4);
+    art.background_width = static_cast<uint32_t>(width);
+    art.background_height = static_cast<uint32_t>(height);
+    stbi_image_free(pixels);
+    std::fprintf(stderr, "[mt] Launcher background loaded (%dx%d).\n", width, height);
+    publish(std::move(art));
 }
 
 #endif // MT_HAVE_CURL
@@ -247,6 +303,23 @@ void mt_ss::start_fetch(const std::filesystem::path& stored_rom_path, const std:
 #else
     (void)stored_rom_path;
     (void)rom_name;
+#endif
+}
+
+void mt_ss::start_background_fetch() {
+#ifdef MT_HAVE_CURL
+    if (background_started.exchange(true)) {
+        return;
+    }
+    std::string url = env_or("MT_LAUNCHER_BG_URL", launcher_background_url);
+    if (url == "none") {
+        return;
+    }
+    static bool curl_ready = (curl_global_init(CURL_GLOBAL_DEFAULT) == CURLE_OK);
+    if (!curl_ready) {
+        return;
+    }
+    std::thread{ fetch_background, url }.detach();
 #endif
 }
 

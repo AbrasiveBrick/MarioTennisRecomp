@@ -104,6 +104,11 @@ Requirements: clang, CMake, Ninja, Python 3, Git, and the SDL2, GTK 3, Freetype 
 3. Build: `sh tools/build_linux.sh`. The result is `build-live/MarioTennisRecompiled`. Run it with this folder as
    the working directory. To make it smaller, `strip` it (it is built with debug info).
 
+### Launcher background
+When the build finds libcurl, the launcher loads the official Mario Tennis artwork from Nintendo's website by link
+at every launch and keeps it in memory only, so no copyrighted image ships in this repository. Offline, or without
+libcurl, it shows the built-in court. `MT_LAUNCHER_BG_URL=none` turns it off.
+
 ### Launcher artwork from ScreenScraper (optional)
 When the build finds libcurl (Ubuntu/Debian: `libcurl4-openssl-dev`; Arch: `curl`), the launcher can show the game's
 fanart and logo from [ScreenScraper](https://www.screenscraper.fr) instead of the built-in court and title. They are

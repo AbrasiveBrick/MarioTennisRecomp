@@ -154,7 +154,19 @@ void recompui::launcher_frame_update() {
     if (!mt_ss::take_artwork(art)) {
         return;
     }
-    if (!art.background.empty()) {
+    // The linked launcher background wins over ScreenScraper's fanart; whichever arrives first shows until then.
+    static bool linked_background_shown = false;
+    if (!art.background_rgba.empty()) {
+        static int generation = 0;
+        std::string name = "?/launcher-background-" + std::to_string(++generation);
+        recompui::queue_image_from_bytes_rgba32(name, art.background_rgba, art.background_width, art.background_height);
+        ss_background_decorator = "image(/" + name + " cover center center)";
+        ss_has_background = true;
+        linked_background_shown = true;
+        model_handle.DirtyVariable("ss_background_decorator");
+        model_handle.DirtyVariable("ss_has_background");
+    }
+    else if (!art.background.empty() && !linked_background_shown) {
         recompui::queue_image_from_bytes_file("?/ss-background", art.background);
         // Set only now, so the texture is first looked up after its bytes are queued. "cover" fills the window.
         ss_background_decorator = "image(/?/ss-background cover center center)";
@@ -217,6 +229,7 @@ public:
     LauncherMenu() {
         mm_rom_valid = recomp::is_rom_valid(supported_games[0].game_id);
         net_load_settings();
+        mt_ss::start_background_fetch();
         if (mm_rom_valid) {
             start_artwork_fetch();
         }
