@@ -361,4 +361,6 @@ void mt_dump_all_stacks() {
 }
 #else
 void mt_dump_all_stacks() {}
+// Stack scanning needs VirtualQuery; on other platforms only the unmapped-address line is printed.
+extern "C" void mt_print_game_stack(const void*, const void*, size_t) {}
 #endif

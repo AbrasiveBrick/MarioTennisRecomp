@@ -11,7 +11,12 @@
 
 #include <algorithm>
 #include <chrono>
+#ifdef _WIN32
 #include <io.h>
+#else
+#include <fcntl.h>
+#include <unistd.h>
+#endif
 #include <cstdio>
 #include <cstring>
 #include <sstream>
@@ -136,11 +141,18 @@ namespace {
     // standard stream at NUL first.
     void ensure_writable_std_streams() {
         for (FILE* f : { stdout, stderr }) {
+#ifdef _WIN32
             int fd = _fileno(f);
             if (fd < 0 || _get_osfhandle(fd) == -1 || _get_osfhandle(fd) == -2) {
                 FILE* dummy = nullptr;
                 freopen_s(&dummy, "NUL", "w", f);
             }
+#else
+            int fd = fileno(f);
+            if (fd < 0 || fcntl(fd, F_GETFD) == -1) {
+                freopen("/dev/null", "w", f);
+            }
+#endif
         }
     }
 
