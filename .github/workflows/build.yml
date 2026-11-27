@@ -54,6 +54,8 @@ jobs:
   windows:
     runs-on: windows-2022
     steps:
+      # Keep LF line endings so patches/ applies to the Zelda64Recomp sources.
+      - run: git config --global core.autocrlf false
       - uses: actions/checkout@v4
       - uses: ilammy/msvc-dev-cmd@v1
         with:
