@@ -29,7 +29,11 @@ namespace RT64 {
             static bool reported = false;
             if (!instance.instance_loaded && !reported) {
                 reported = true;
+                #           if defined(_WIN32)
                 fprintf(stderr, "[mt] librashader.dll not found or incompatible; shaders are unavailable.\n");
+#           else
+                fprintf(stderr, "[mt] librashader.so not found or incompatible; shaders are unavailable.\n");
+#           endif
             }
             return instance;
         }
