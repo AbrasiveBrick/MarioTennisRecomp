@@ -31,9 +31,17 @@ Get-FileHash "Mario Tennis (USA).z64" -Algorithm SHA1
 If it doesn't match, the port won't recognise the file. The usual cause is the wrong region or a modified (hacked or translated) ROM.
 
 ## Download
-Get `MarioTennisRecompiled-Windows.zip` from the [Releases](https://github.com/Ieatzcrayonz/MarioTennisRecomp/releases) page,
-unzip it, run `MarioTennisRecompiled.exe`, pick your ROM and press Start game. The download contains no game
-code or data: the game is translated from your own ROM when it starts.
+Get the latest build from the [Releases](https://github.com/AbrasiveBrick/MarioTennisRecomp/releases) page:
+- **Linux x86_64**: `MarioTennisRecompiled-<version>-linux-x86_64.tar.gz`. Extract it and run
+  `./MarioTennisRecompiled` from the extracted folder.
+- **Windows x64**: `MarioTennisRecompiled-<version>-windows-x64.zip`. Unzip it and run `MarioTennisRecompiled.exe`.
+
+Pick your ROM and press Start game. The download contains no game code or data: the game is translated from
+your own ROM when it starts.
+
+Builds are made by GitHub Actions (`.github/workflows/build.yml`). Every push to `main` uploads test builds as
+workflow artifacts; pushing a `v*` tag, or running the workflow by hand with a tag, publishes a release with the
+notes in `tools/release/NOTES.md`.
 
 ## Features
 - Runs at any resolution: 720p, 1080p, 1440p, 4K or matching the window.
@@ -97,12 +105,16 @@ Requirements: Visual Studio 2022+ Build Tools, LLVM/clang-cl, CMake, Ninja, Pyth
 Requirements: clang, CMake, Ninja, Python 3, Git, and the SDL2, GTK 3, Freetype and Vulkan development packages
 (Ubuntu/Debian: `libsdl2-dev libgtk-3-dev libfreetype-dev libvulkan-dev`; Arch: `sdl2 gtk3 freetype2 vulkan-headers vulkan-icd-loader`).
 
+Steps 1 and 2 can be done in one go with `sh tools/setup_lib.sh`, which clones the pinned Zelda64Recomp commit
+next to this folder, links `lib` and applies the patches.
+
 1. Clone [Zelda64Recomp](https://github.com/Zelda64Recomp/Zelda64Recomp) with `--recursive` and symlink its `lib`
    folder here: `ln -s <path to Zelda64Recomp>/lib lib`.
 2. Apply the patches in `patches/` as on Windows (`git apply` inside each of the three folders). With clang 23 or
    newer, also apply `patches/fmt-clang23.patch` inside `lib/N64ModernRuntime/N64Recomp/lib/fmt`.
 3. Build: `sh tools/build_linux.sh`. The result is `build-live/MarioTennisRecompiled`. Run it with this folder as
    the working directory. To make it smaller, `strip` it (it is built with debug info).
+4. Optional: `sh tools/package_linux.sh <version>` makes the shareable archive in `dist/`.
 
 ### Launcher background
 When the build finds libcurl, the launcher loads the official Mario Tennis artwork from Nintendo's website by link

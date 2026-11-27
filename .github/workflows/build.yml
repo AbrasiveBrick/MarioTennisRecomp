@@ -1,0 +1,106 @@
+name: Build
+
+# Builds the release (live recompilation) game for Linux x86_64 and Windows x64.
+# Every push to main and every pull request uploads the packages as workflow artifacts.
+# Pushing a v* tag, or running the workflow by hand with a tag, also publishes a GitHub Release.
+# The packages contain no ROM, game code or game data: players supply their own ROM.
+
+on:
+  push:
+    branches: [main]
+    tags: ['v*']
+  pull_request:
+  workflow_dispatch:
+    inputs:
+      release_tag:
+        description: 'Publish a release with this tag (e.g. v0.4.0). Leave empty to only build.'
+        required: false
+        default: ''
+
+permissions:
+  contents: read
+
+concurrency:
+  group: build-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+env:
+  # Release tag (tag push or manual input), else the short commit for dev builds.
+  VERSION: ${{ startsWith(github.ref, 'refs/tags/v') && github.ref_name || inputs.release_tag || format('dev-{0}', github.sha) }}
+
+jobs:
+  linux:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y clang ninja-build libsdl2-dev libgtk-3-dev libfreetype-dev libvulkan-dev libcurl4-openssl-dev
+      - name: Fetch Zelda64Recomp and apply patches
+        run: sh tools/setup_lib.sh "$RUNNER_TEMP/Zelda64Recomp"
+      - name: Build
+        run: sh tools/build_linux.sh
+      - name: Package
+        run: |
+          case "$VERSION" in dev-*) v="${VERSION:0:11}";; *) v="$VERSION";; esac
+          sh tools/package_linux.sh "$v"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: linux-x86_64
+          path: dist/*.tar.gz
+          if-no-files-found: error
+
+  windows:
+    runs-on: windows-2022
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ilammy/msvc-dev-cmd@v1
+        with:
+          arch: x64
+      - name: Fetch Zelda64Recomp and apply patches
+        shell: bash
+        run: sh tools/setup_lib.sh "$RUNNER_TEMP/Zelda64Recomp"
+      - name: Build
+        shell: cmd
+        run: |
+          cmake -S . -B build-live -G Ninja -DMT_LIVE_RECOMP=ON -DCMAKE_BUILD_TYPE=RelWithDebInfo -DCMAKE_C_COMPILER=clang-cl -DCMAKE_CXX_COMPILER=clang-cl -DCMAKE_POLICY_VERSION_MINIMUM=3.5 || exit /b 1
+          cmake --build build-live --target MarioTennisRecompiled || exit /b 1
+      - name: Package
+        shell: pwsh
+        run: |
+          $v = $env:VERSION
+          if ($v.StartsWith('dev-')) { $v = $v.Substring(0, 11) }
+          $stage = 'dist/MarioTennisRecompiled'
+          New-Item -ItemType Directory -Force $stage | Out-Null
+          Copy-Item build-live/MarioTennisRecompiled.exe, build-live/*.dll, recompcontrollerdb.txt, LICENSE $stage
+          Copy-Item -Recurse assets, slang-shaders $stage
+          Copy-Item tools/release/README-windows.txt "$stage/README.txt"
+          $bad = Get-ChildItem -Recurse $stage -Include *.z64, *.n64, *.v64, *.rom, *.eep, *.sra
+          if ($bad) { throw "ROM or save file found in the package: $bad" }
+          Compress-Archive -Path $stage -DestinationPath "dist/MarioTennisRecompiled-$v-windows-x64.zip"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: windows-x64
+          path: dist/*.zip
+          if-no-files-found: error
+
+  release:
+    if: startsWith(github.ref, 'refs/tags/v') || (github.event_name == 'workflow_dispatch' && inputs.release_tag != '')
+    needs: [linux, windows]
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          path: dist
+          merge-multiple: true
+      - uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ env.VERSION }}
+          target_commitish: ${{ github.sha }}
+          name: Mario Tennis Recompiled ${{ env.VERSION }}
+          body_path: tools/release/NOTES.md
+          files: dist/*
