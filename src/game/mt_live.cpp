@@ -11,7 +11,12 @@
 
 #include <algorithm>
 #include <chrono>
+#ifdef _WIN32
 #include <io.h>
+#else
+#include <fcntl.h>
+#include <unistd.h>
+#endif
 #include <cstdio>
 #include <cstring>
 #include <sstream>
@@ -116,11 +121,20 @@ namespace {
         cop0_status_write(ctx, value);
     }
 
-    // Everything the runtime keeps pointers into must outlive the game.
-    std::unique_ptr<N64Recomp::LiveGeneratorOutput> live_output;
-    std::vector<std::vector<FuncEntry>> section_funcs;
-    std::vector<std::vector<RelocEntry>> section_relocs;
-    std::vector<SectionTableEntry> section_table;
+    // Everything the runtime keeps pointers into must outlive the game. The game's threads are still
+    // running native code from live_output when main() returns, so these are deliberately never freed:
+    // destroying them during static destruction crashes on quit (seen on Linux).
+    struct LiveState {
+        std::unique_ptr<N64Recomp::LiveGeneratorOutput> live_output;
+        std::vector<std::vector<FuncEntry>> section_funcs;
+        std::vector<std::vector<RelocEntry>> section_relocs;
+        std::vector<SectionTableEntry> section_table;
+    };
+    LiveState& live_state = *new LiveState{};
+    std::unique_ptr<N64Recomp::LiveGeneratorOutput>& live_output = live_state.live_output;
+    std::vector<std::vector<FuncEntry>>& section_funcs = live_state.section_funcs;
+    std::vector<std::vector<RelocEntry>>& section_relocs = live_state.section_relocs;
+    std::vector<SectionTableEntry>& section_table = live_state.section_table;
     int overlay_sections_by_index[] = { -1 };
     recomp_func_t* entry_func = nullptr;
     std::vector<std::pair<uintptr_t, std::string>> func_index;  // sorted by native address
@@ -136,11 +150,18 @@ namespace {
     // standard stream at NUL first.
     void ensure_writable_std_streams() {
         for (FILE* f : { stdout, stderr }) {
+#ifdef _WIN32
             int fd = _fileno(f);
             if (fd < 0 || _get_osfhandle(fd) == -1 || _get_osfhandle(fd) == -2) {
                 FILE* dummy = nullptr;
                 freopen_s(&dummy, "NUL", "w", f);
             }
+#else
+            int fd = fileno(f);
+            if (fd < 0 || fcntl(fd, F_GETFD) == -1) {
+                freopen("/dev/null", "w", f);
+            }
+#endif
         }
     }
 

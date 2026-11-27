@@ -72,6 +72,16 @@ Requirements: Visual Studio 2022+ Build Tools, LLVM/clang-cl, CMake, Ninja, Pyth
    copied next to the exe (`tools\build_live.bat` does this for `F:\Recomps\src\librashader`). The shader presets
    in `slang-shaders/` are copied automatically. Without the DLL the game runs normally and the option does nothing.
 
+## Building (Linux, x86_64)
+Requirements: clang, CMake, Ninja, Python 3, Git, and the SDL2, GTK 3, Freetype and Vulkan development packages
+(Ubuntu/Debian: `libsdl2-dev libgtk-3-dev libfreetype-dev libvulkan-dev`; Arch: `sdl2 gtk3 freetype2 vulkan-headers vulkan-icd-loader`).
+
+1. Clone [Zelda64Recomp](https://github.com/Zelda64Recomp/Zelda64Recomp) with `--recursive` and symlink its `lib`
+   folder here: `ln -s <path to Zelda64Recomp>/lib lib`.
+2. Apply the patches in `patches/` as on Windows (`git apply` inside each of the three folders).
+3. Build: `sh tools/build_linux.sh`. The result is `build-live/MarioTennisRecompiled`. Run it with this folder as
+   the working directory.
+
 Technical notes on how the port works are in [NOTES.md](NOTES.md).
 
 ## Credits
