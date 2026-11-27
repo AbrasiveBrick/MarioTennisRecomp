@@ -56,7 +56,7 @@ extern "C" void mt_prof_event(const char* what, uint32_t arg);
 
 #include "../../lib/rt64/src/contrib/stb/stb_image.h"
 
-const std::string version_string = "0.3.2";
+const std::string version_string = "0.4.0";
 
 template<typename... Ts>
 void exit_error(const char* str, Ts ...args) {
