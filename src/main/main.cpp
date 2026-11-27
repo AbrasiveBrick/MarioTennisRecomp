@@ -751,6 +751,9 @@ int main(int argc, char** argv) {
         autostart_thread.join();
     }
 
+    void mt_net_shutdown();
+    mt_net_shutdown();
+
     NFD_Quit();
 
     if (preloaded) {

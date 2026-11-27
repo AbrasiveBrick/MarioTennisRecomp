@@ -44,6 +44,7 @@ code or data: the game is translated from your own ROM when it starts.
   "On + Keyboard" also makes the keyboard a player, so one controller and a keyboard can play 2-player
   (Settings → General → Local Multiplayer).
 - Saves work as on the cartridge.
+- Online play for 2 players (experimental, see [Online play](#online-play-experimental)).
 - Bonus characters: Donkey Kong Jr. and Shy Guy are unlocked from the start.
 - Transfer Pak characters: Alex, Harry, Nina and Kate from the Game Boy Color version are on Character Select without a Transfer Pak (level 25, starting stats).
 - Optional cheats, all off by default (Settings → General): **All Courts**, **Star Characters**,
@@ -53,6 +54,25 @@ code or data: the game is translated from your own ROM when it starts.
 - DirectX 12 or Vulkan (Settings → Graphics → Graphics API).
 - Optional CRT shaders from RetroArch (CRT-Royale, CRT-Royale Fast, CRT-Lottes) via librashader
   (Settings → Graphics → Shader).
+
+## Online play (experimental)
+Two players can play over the internet or a LAN. Both run the same build of Mario Tennis: Recompiled with the
+same ROM; the game runs on both PCs in lockstep and only controller inputs are sent. For now it's set up with
+environment variables when starting the game:
+
+- Player 1 (host): `MT_NET_HOST=7777 ./MarioTennisRecompiled`. The host's UDP port (7777 here) must be
+  reachable by player 2 (forward it on the router for internet play).
+- Player 2: `MT_NET_JOIN=<host address>:7777 ./MarioTennisRecompiled`.
+- Optional: `MT_NET_PAD=keyboard` or `MT_NET_PAD=<n>` (controller number, from 1) picks what controls your
+  player; by default the keyboard and every controller do. Useful for testing two copies on one PC.
+- Optional, host only: `MT_NET_DELAY=<frames>` (default 2). The game runs at 30 frames per second, so 2 frames
+  is about 67 ms of input delay; raise it if the game stutters on a slow connection.
+
+Press Start on the launcher on both sides. The host's game waits for player 2 before booting. Each player uses
+their own controller (or keyboard) as player 1 would locally; the host is player 1 in the game and the other
+player is player 2. Player 2 plays on a copy of the host's save and the host's cheat settings, so both see the
+same unlocks; player 2's own save isn't touched. If the two games ever drift apart the log shows
+`[net] DESYNC`; please report it with both players' logs.
 
 ## Building (Windows)
 Requirements: Visual Studio 2022+ Build Tools, LLVM/clang-cl, CMake, Ninja, Python 3 and Git Bash.

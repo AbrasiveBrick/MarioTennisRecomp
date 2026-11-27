@@ -621,3 +621,43 @@ the head-on banner view, not the overhead shot.
   non-matching rate). The game delivers every frame on time (MT_FPS: 30-31 tasks/s, no gfx task
   over 40 ms in a match). The general slowdown reported
   in Piranha Challenge / Ring Shot (#14) is not looked at yet.
+
+## Netplay and determinism (2026-11-27)
+Two-player online play is delay-based lockstep (src/game/mt_netplay.cpp): both PCs run the whole game and
+exchange only pad inputs, so the game has to play out identically from the same inputs.
+
+- Frame: the game runs one logic frame per call of its frame wait func_80031F40 (30 fps: it loops on the
+  VI/scheduler queue 0x80061F50 until more than 1 retrace has passed since the last frame, 3 in some modes),
+  which ends by reading all four pads with func_800364C4. A hook just before that call (0x800321A4) is the
+  netplay tick: the frame's inputs are fixed there. func_800364C4 reads each pad through func_80033A00
+  (copies the poll thread's OSContPad buffer 0x800629B4 under a mutex, then pressed = cur & ~prev); a hook at
+  its end (0x80033A68) writes the frame's input instead, so the pad poll thread's timing doesn't matter.
+- RNG: one Mersenne Twister (state 0x8005CC10, genrand func_800329C0, sgenrand func_800317B4 seeded with
+  0 -> 4357 at boot). The frame wait calls genrand (osGetCount() & 7) times on every loop iteration
+  (0x80031FE8), so the sequence depended on host timing: this is why the title demo was a different match
+  every run. In deterministic mode the hook at 0x80031FF0 replaces the count: a seeded pseudo-random value on
+  the frame's first iteration, 0 afterwards. Other generators (an ANSI rand at seg71 0x801230F0, seed
+  0x8012C120; a per-object LCG at seg86 0x800E9064) are seeded from game state.
+- Result (headless runs, llvmpipe, two copies at once to perturb timing): with the stir pinned, 1100+ frames of
+  boot + attract demo match in every 64 KiB block of RDRAM outside 0x80040000-0x800CFFFF (audio heap/driver
+  state, scheduler and timing globals), 0x802F0000 (seg19 audio driver) and 0x80380000-0x803FFFFF (frame and
+  display list buffers), apart from single-frame blips while a streaming load lands. Without the pin, the
+  object area (0x80130000+) diverges within ~120 frames. Those noisy blocks are left out of the netplay state
+  hash (MT_NET_HASH_SKIP overrides the list), and a desync is only reported after 15 compared frames differ.
+- Session setup happens in mt::on_init, before any game code: the host sends a seed for the stir, the input
+  delay, its cheat settings and its EEPROM (16 Kbit, two 1 KiB chunks). The guest switches to
+  saves/netplay/guest.bin and loads the host's save into it at the game's first EEPROM probe/read
+  (hooks at func_80041678 / func_80041698). Ports 0 and 1 are always reported connected (mt_port_source).
+- Protocol: UDP, packets start with "MTNP" + type + version. Each side sends every input the peer hasn't
+  acknowledged yet (up to 64 per packet), the highest contiguous frame it has received and its latest
+  state hash; a network thread resends every 10 ms. Frames below the delay are zero input on both sides.
+- Tools: MT_HASH_LOG writes per-frame hashes of every 64 KiB block (compare two runs with
+  tools/hashdiff.py), MT_STATE_DUMP=<dir>:<frames> writes full RDRAM at chosen frames,
+  MT_REPLAY_RECORD / MT_REPLAY_PLAY record and replay inputs per frame (tools/make_replay.py writes
+  scripted ones), MT_DETERMINISTIC=1 only pins the stir, MT_FRAME_LOG=1 prints the frame count.
+- Not done yet: rollback (savestates are still disabled), an in-game menu instead of environment
+  variables, NAT traversal, more than 2 players, syncing the Expand widescreen setting (it changes the
+  game's camera aspect and culling, so mismatched window shapes may desync; untested).
+- Don't rerun tools/make_live_tables.py against Zelda64Recomp b65c482's N64Recomp: it drops five natives
+  (__osContRamRead/Write, __osPfsGetStatus, osMapTLB, osUnmapTLBAll) from mt_live_data.inc; the netplay hooks
+  were added to the .inc by hand.
