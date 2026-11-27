@@ -103,6 +103,22 @@ Requirements: clang, CMake, Ninja, Python 3, Git, and the SDL2, GTK 3, Freetype 
 3. Build: `sh tools/build_linux.sh`. The result is `build-live/MarioTennisRecompiled`. Run it with this folder as
    the working directory. To make it smaller, `strip` it (it is built with debug info).
 
+### Launcher artwork from ScreenScraper (optional)
+When the build finds libcurl (Ubuntu/Debian: `libcurl4-openssl-dev`; Arch: `curl`), the launcher can show the game's
+fanart and logo from [ScreenScraper](https://www.screenscraper.fr) instead of the built-in court and title. They are
+downloaded at every launch and kept in memory only, never saved to disk. Without credentials, a network connection,
+a selected ROM or a match on ScreenScraper, the launcher keeps its built-in art.
+
+ScreenScraper's API needs developer credentials, which you request on its forum. Provide them at runtime:
+
+```
+MT_SS_DEVID=... MT_SS_DEVPASSWORD=... ./MarioTennisRecompiled
+```
+
+or bake them into your own build with `-DMT_SS_DEVID=... -DMT_SS_DEVPASSWORD=...` (never commit them). A
+ScreenScraper member login (`MT_SS_USER`, `MT_SS_PASSWORD`) is optional and raises the request quota.
+`MT_SS_DISABLE=1` turns the lookup off.
+
 Technical notes on how the port works are in [NOTES.md](NOTES.md).
 
 ## Credits

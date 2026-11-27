@@ -36,6 +36,7 @@ namespace recompui {
     };
 
     std::unique_ptr<MenuController> create_launcher_menu();
+    void launcher_frame_update(); // Mario Tennis recomp: hands over ScreenScraper artwork when it arrives
     std::unique_ptr<MenuController> create_config_menu();
 
     using event_handler_t = void(const std::string& param, Rml::Event&);

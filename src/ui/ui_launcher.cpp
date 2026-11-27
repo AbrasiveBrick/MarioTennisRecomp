@@ -5,6 +5,7 @@
 #include "ultramodern/ultramodern.hpp"
 #include "RmlUi/Core.h"
 #include "nfd.h"
+#include "mt_screenscraper.h"
 #include <filesystem>
 #include <fstream>
 #include <iterator>
@@ -15,7 +16,41 @@ static std::string version_string;
 Rml::DataModelHandle model_handle;
 bool mm_rom_valid = false;
 
+// Mario Tennis recomp: ScreenScraper artwork, shown over the built-in court when it arrives (see ui_screenscraper.cpp).
+static std::string ss_background_decorator = "none";
+static std::string ss_logo_src;
+static bool ss_has_background = false;
+static bool ss_has_logo = false;
+
 extern std::vector<recomp::GameEntry> supported_games;
+
+static void start_artwork_fetch() {
+    std::u8string stored = supported_games[0].game_id + u8".z64";
+    mt_ss::start_fetch(zelda64::get_app_folder_path() / stored, "Mario Tennis (USA).z64");
+}
+
+// Called by the UI every frame before rendering, on the UI thread.
+void recompui::launcher_frame_update() {
+    mt_ss::Artwork art;
+    if (!mt_ss::take_artwork(art)) {
+        return;
+    }
+    if (!art.background.empty()) {
+        recompui::queue_image_from_bytes_file("?/ss-background", art.background);
+        // Set only now, so the texture is first looked up after its bytes are queued. "cover" fills the window.
+        ss_background_decorator = "image(/?/ss-background cover center center)";
+        ss_has_background = true;
+        model_handle.DirtyVariable("ss_background_decorator");
+        model_handle.DirtyVariable("ss_has_background");
+    }
+    if (!art.logo.empty()) {
+        recompui::queue_image_from_bytes_file("?/ss-logo", art.logo);
+        ss_logo_src = "?/ss-logo";
+        ss_has_logo = true;
+        model_handle.DirtyVariable("ss_logo_src");
+        model_handle.DirtyVariable("ss_has_logo");
+    }
+}
 
 void select_rom() {
     nfdnchar_t* native_path = nullptr;
@@ -26,6 +61,7 @@ void select_rom() {
                 case recomp::RomValidationError::Good:
                     mm_rom_valid = true;
                     model_handle.DirtyVariable("mm_rom_valid");
+                    start_artwork_fetch();
                     break;
                 case recomp::RomValidationError::FailedToOpen:
                     recompui::message_box("Failed to open ROM file.");
@@ -61,6 +97,9 @@ class LauncherMenu : public recompui::MenuController {
 public:
     LauncherMenu() {
         mm_rom_valid = recomp::is_rom_valid(supported_games[0].game_id);
+        if (mm_rom_valid) {
+            start_artwork_fetch();
+        }
     }
     ~LauncherMenu() override {
 
@@ -78,6 +117,7 @@ public:
             [](const std::string& param, Rml::Event& event) {
                 mm_rom_valid = true;
                 model_handle.DirtyVariable("mm_rom_valid");
+                start_artwork_fetch();
             }
         );
         recompui::register_event(listener, "start_game",
@@ -117,6 +157,10 @@ public:
         Rml::DataModelConstructor constructor = context->CreateDataModel("launcher_model");
 
         constructor.Bind("mm_rom_valid", &mm_rom_valid);
+        constructor.Bind("ss_background_decorator", &ss_background_decorator);
+        constructor.Bind("ss_logo_src", &ss_logo_src);
+        constructor.Bind("ss_has_background", &ss_has_background);
+        constructor.Bind("ss_has_logo", &ss_has_logo);
 
         version_string = recomp::get_project_version().to_string();
         constructor.Bind("version_number", &version_string);
