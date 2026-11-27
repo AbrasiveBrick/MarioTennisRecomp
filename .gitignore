@@ -14,7 +14,7 @@ lib
 lib/
 *.log
 .vs/
-release/
+/release/
 
 # Release packages (tools/package_linux.sh)
 dist/
