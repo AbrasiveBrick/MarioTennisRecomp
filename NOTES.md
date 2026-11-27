@@ -167,7 +167,10 @@ queue as `?/ss-background` and `?/ss-logo`; `recompui::launcher_frame_update()` 
 UI thread) hands them over and flips data bindings. The background is a decorator set through
 `data-style-decorator` only once the bytes are queued, because a texture looked up earlier stays transparent
 (RmlUi decorators need the `/?/` spelling to skip document-relative path joining). `MT_SS_API` points the
-lookup at a mock server for testing. Windows builds have no libcurl yet, so they keep the built-in art.
+lookup at a mock server for testing. The launcher background itself is Nintendo's official artwork, loaded by
+link (`launcher_background_url` in `ui_screenscraper.cpp`, needs no credentials), decoded with rt64's stb_image to
+RGBA and queued with `queue_image_from_bytes_rgba32`; it wins over ScreenScraper's fanart. `MT_LAUNCHER_BG_URL`
+replaces the link (`none` disables it). Windows builds have no libcurl yet, so they keep the built-in art.
 
 ## Save data
 16 Kbit EEPROM. With 4K the game probes, rejects it, never reads/writes and shows "The saved data
