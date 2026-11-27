@@ -128,6 +128,7 @@ set (SOURCES
     ${CMAKE_SOURCE_DIR}/src/ui/ui_renderer.cpp
     ${CMAKE_SOURCE_DIR}/src/ui/ui_state.cpp
     ${CMAKE_SOURCE_DIR}/src/ui/ui_launcher.cpp
+    ${CMAKE_SOURCE_DIR}/src/ui/ui_screenscraper.cpp
     ${CMAKE_SOURCE_DIR}/src/ui/ui_config.cpp
     ${CMAKE_SOURCE_DIR}/src/ui/ui_prompt.cpp
     ${CMAKE_SOURCE_DIR}/src/ui/ui_config_sub_menu.cpp
@@ -304,6 +305,22 @@ if (CMAKE_SYSTEM_NAME MATCHES "Linux")
     find_package(Threads REQUIRED)
 
     target_link_libraries(MarioTennisRecompiled PRIVATE "-latomic -static-libstdc++" ${CMAKE_DL_LIBS} Threads::Threads)
+endif()
+
+# Optional launcher artwork from ScreenScraper, fetched at runtime with libcurl (see src/ui/ui_screenscraper.cpp).
+# Without libcurl the launcher keeps its built-in art. Developer credentials can be baked in with
+# -DMT_SS_DEVID=... -DMT_SS_DEVPASSWORD=... (keep them out of the repository) or set at runtime with
+# the MT_SS_DEVID / MT_SS_DEVPASSWORD environment variables.
+set(MT_SS_DEVID "" CACHE STRING "ScreenScraper developer id (optional)")
+set(MT_SS_DEVPASSWORD "" CACHE STRING "ScreenScraper developer password (optional)")
+find_package(CURL QUIET)
+if (CURL_FOUND)
+    target_compile_definitions(MarioTennisRecompiled PRIVATE MT_HAVE_CURL
+        "MT_SS_DEVID_DEFAULT=\"${MT_SS_DEVID}\"" "MT_SS_DEVPASSWORD_DEFAULT=\"${MT_SS_DEVPASSWORD}\"")
+    target_link_libraries(MarioTennisRecompiled PRIVATE CURL::libcurl)
+    message(STATUS "ScreenScraper launcher artwork: enabled (libcurl ${CURL_VERSION_STRING})")
+else()
+    message(STATUS "ScreenScraper launcher artwork: disabled (libcurl not found)")
 endif()
 
 if (NOT MT_LIVE_RECOMP)

@@ -755,6 +755,7 @@ void draw_hook(RT64::RenderCommandList* command_list, RT64::RenderFramebuffer* s
     ui_state->update_focus(mouse_moved, non_mouse_interacted);
 
     if (recompui::is_any_context_shown()) {
+        recompui::launcher_frame_update();
         ui_state->update_contexts();
 
         int width = swap_chain_framebuffer->getWidth();

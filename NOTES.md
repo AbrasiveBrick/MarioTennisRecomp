@@ -160,6 +160,15 @@ Condensed SemiBold (SIL OFL, `assets/Barlow-LICENSE.txt`), loaded in `src/ui/ui_
 registers them by weight (400 and 600). The ball-yellow dot marks the selected row and is the only accent.
 Settings menus keep the stock fonts.
 
+ScreenScraper artwork (optional, `src/ui/ui_screenscraper.cpp`): with libcurl and developer credentials, a
+background thread hashes the stored ROM (CRC32 + size), calls `jeuInfos.php` (systemeid 14), and downloads the
+`fanart` and `wheel-hd`/`wheel` media as PNG (`outputformat=png`). Bytes stay in memory and go to the UI image
+queue as `?/ss-background` and `?/ss-logo`; `recompui::launcher_frame_update()` (called from `draw_hook` on the
+UI thread) hands them over and flips data bindings. The background is a decorator set through
+`data-style-decorator` only once the bytes are queued, because a texture looked up earlier stays transparent
+(RmlUi decorators need the `/?/` spelling to skip document-relative path joining). `MT_SS_API` points the
+lookup at a mock server for testing. Windows builds have no libcurl yet, so they keep the built-in art.
+
 ## Save data
 16 Kbit EEPROM. With 4K the game probes, rejects it, never reads/writes and shows "The saved data
 has been erased due to corruption or damage" every boot. Saves: `%LOCALAPPDATA%\MarioTennisRecompiled\saves\mt.n64.us.bin`.
