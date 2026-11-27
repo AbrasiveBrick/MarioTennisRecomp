@@ -27,9 +27,9 @@ static bool is_mod_enabled_or_auto(const std::string &mod_id) {
 }
 
 // ModEntryView
-#define COL_TEXT_DEFAULT 242, 242, 242
-#define COL_TEXT_DIM 204, 204, 204
-#define COL_SECONDARY 23, 214, 232
+#define COL_TEXT_DEFAULT 243, 244, 238
+#define COL_TEXT_DIM 184, 188, 179
+#define COL_SECONDARY 215, 238, 58
 constexpr float modEntryHeight = 120.0f;
 constexpr float modEntryPadding = 4.0f;
 
@@ -55,7 +55,7 @@ ModEntryView::ModEntryView(Element *parent) : Element(parent, Events(EventType::
     checked_style.set_background_color(Color{ 26, 24, 32, 255 });
     hover_style.set_border_color(Color{ COL_TEXT_DEFAULT, 64 });
     checked_hover_style.set_border_color(Color{ COL_TEXT_DEFAULT, 255 });
-    pulsing_style.set_border_color(Color{ 23, 214, 232, 244 });
+    pulsing_style.set_border_color(Color{ 215, 238, 58, 244 });
 
     {
         thumbnail_image = context.create_element<Image>(this, "");
@@ -63,7 +63,7 @@ ModEntryView::ModEntryView(Element *parent) : Element(parent, Events(EventType::
         thumbnail_image->set_height(modEntryHeight);
         thumbnail_image->set_min_width(modEntryHeight);
         thumbnail_image->set_min_height(modEntryHeight);
-        thumbnail_image->set_background_color(Color{ 190, 184, 219, 25 });
+        thumbnail_image->set_background_color(Color{ 234, 237, 227, 25 });
 
 
         body_container = context.create_element<Element>(this);
@@ -669,7 +669,7 @@ ModMenu::ModMenu(Element *parent) : Element(parent) {
         body_empty_container->set_display(Display::None);
         {
             context.create_element<Element>(body_empty_container);
-            context.create_element<Label>(body_empty_container, "You have no mods. Go get some!", LabelStyle::Large);
+            context.create_element<Label>(body_empty_container, "No mods installed", LabelStyle::Large);
             context.create_element<Element>(body_empty_container);
         } // body_empty_container
 
@@ -685,7 +685,7 @@ ModMenu::ModMenu(Element *parent) : Element(parent) {
         footer_container->set_border_bottom_right_radius(16.0f);
         {
             Button* configure_button = mod_details_panel->get_configure_button();
-            install_mods_button = context.create_element<Button>(footer_container, "Install Mods", recompui::ButtonStyle::Primary);
+            install_mods_button = context.create_element<Button>(footer_container, "Install mods", recompui::ButtonStyle::Primary);
             install_mods_button->add_pressed_callback([this](){ open_install_dialog(); });
 
             Element* footer_spacer = context.create_element<Element>(footer_container);
@@ -695,7 +695,7 @@ ModMenu::ModMenu(Element *parent) : Element(parent) {
             refresh_button->add_pressed_callback([this](){ refresh_mods(true); });
             refresh_button->set_nav_manual(NavDirection::Up, mod_tab_id);
 
-            mods_folder_button = context.create_element<Button>(footer_container, "Open Mods Folder", recompui::ButtonStyle::Primary);
+            mods_folder_button = context.create_element<Button>(footer_container, "Open mods folder", recompui::ButtonStyle::Primary);
             mods_folder_button->add_pressed_callback([this](){ open_mods_folder(); });
             mods_folder_button->set_nav(NavDirection::Up, configure_button);
             mods_folder_button->set_nav_manual(NavDirection::Up, mod_tab_id);

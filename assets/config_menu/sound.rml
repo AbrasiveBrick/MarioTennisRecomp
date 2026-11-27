@@ -7,7 +7,7 @@
                 <!-- Options -->
                 <div class="config__wrapper" data-event-mouseout="set_cur_config_index(-1)">
                         <div class="config-option" data-event-mouseover="set_cur_config_index(0)">
-                            <label class="config-option__title">Main Volume</label>
+                            <label class="config-option__title">Main volume</label>
                             <div class="config-option__range-wrapper config-option__list">
                                 <label class="config-option__range-label">{{main_volume}}%</label>
                                 <input

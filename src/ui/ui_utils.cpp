@@ -16,5 +16,5 @@ recompui::Color recompui::get_pulse_color(uint32_t pulse_milliseconds) {
     uint32_t anim_offset = millis % pulse_milliseconds;
     
     float factor = std::abs((2.0f * anim_offset / pulse_milliseconds) - 1.0f);
-    return lerp_color(Color{ 23, 214, 232, 255 }, Color{ 162, 239, 246, 255 }, factor);
+    return lerp_color(Color{ 215, 238, 58, 255 }, Color{ 232, 246, 138, 255 }, factor);
 }

@@ -1,58 +1,57 @@
 /* stylelint-disable color-no-hex, color-hex-length */
 h1 {
   font-size: 68dp;
-  letter-spacing: 4.76dp;
+  letter-spacing: 0dp;
   line-height: 68dp;
   font-style: normal;
-  font-weight: 700;
+  font-weight: 500;
 }
 
 h2 {
   font-size: 52dp;
-  letter-spacing: 3.64dp;
+  letter-spacing: 0dp;
   line-height: 52dp;
   font-style: normal;
-  font-weight: 700;
+  font-weight: 500;
 }
 
 h3, .tab {
   font-size: 36dp;
-  letter-spacing: 2.52dp;
+  letter-spacing: 0dp;
   line-height: 36dp;
   font-style: normal;
-  font-weight: 700;
+  font-weight: 500;
 }
 
 .label-lg, .menu-list-item__label, .button--large {
   font-size: 36dp;
-  letter-spacing: 3.96dp;
+  letter-spacing: 0dp;
   line-height: 36dp;
   font-style: normal;
-  font-weight: 700;
+  font-weight: 500;
 }
 
 .label-md, .config-debug-option__label, .button, .config-option__title, .config-option--hz .config-option__title, .config-group__title, .control-option__label {
   font-size: 28dp;
-  letter-spacing: 3.08dp;
+  letter-spacing: 0dp;
   line-height: 28dp;
   font-style: normal;
-  font-weight: 700;
+  font-weight: 500;
 }
 
 .label-sm, .config-debug__select-wrapper .config-debug__select-label, .subtitle-title__disclaimer, .config-option__range-label, .config-option-range__label, .config-option__radio-tabs .config-option__tab-label,
 .config-option__list .config-option__tab-label, .centered-page__controls > label {
-  font-size: 20dp;
-  letter-spacing: 2.8dp;
-  line-height: 20dp;
+  font-size: 24dp;
+  letter-spacing: 0dp;
+  line-height: 24dp;
   font-style: normal;
-  font-weight: 700;
-  text-transform: uppercase;
+  font-weight: 500;
 }
 
 .config-option__details {
-  font-size: 18dp;
-  letter-spacing: 2.52dp;
-  line-height: 18dp;
+  font-size: 20dp;
+  letter-spacing: 0dp;
+  line-height: 20dp;
   font-style: normal;
   font-weight: 400;
 }
@@ -128,58 +127,57 @@ body, .config-debug__select-wrapper select, .config-debug__select-wrapper input,
 /* stylelint-disable color-no-hex, color-hex-length */
 h1 {
   font-size: 68dp;
-  letter-spacing: 4.76dp;
+  letter-spacing: 0dp;
   line-height: 68dp;
   font-style: normal;
-  font-weight: 700;
+  font-weight: 500;
 }
 
 h2 {
   font-size: 52dp;
-  letter-spacing: 3.64dp;
+  letter-spacing: 0dp;
   line-height: 52dp;
   font-style: normal;
-  font-weight: 700;
+  font-weight: 500;
 }
 
 h3, .tab {
   font-size: 36dp;
-  letter-spacing: 2.52dp;
+  letter-spacing: 0dp;
   line-height: 36dp;
   font-style: normal;
-  font-weight: 700;
+  font-weight: 500;
 }
 
 .label-lg, .menu-list-item__label, .button--large {
   font-size: 36dp;
-  letter-spacing: 3.96dp;
+  letter-spacing: 0dp;
   line-height: 36dp;
   font-style: normal;
-  font-weight: 700;
+  font-weight: 500;
 }
 
 .label-md, .config-debug-option__label, .button, .config-option__title, .config-option--hz .config-option__title, .config-group__title, .control-option__label {
   font-size: 28dp;
-  letter-spacing: 3.08dp;
+  letter-spacing: 0dp;
   line-height: 28dp;
   font-style: normal;
-  font-weight: 700;
+  font-weight: 500;
 }
 
 .label-sm, .config-debug__select-wrapper .config-debug__select-label, .subtitle-title__disclaimer, .config-option__range-label, .config-option-range__label, .config-option__radio-tabs .config-option__tab-label,
 .config-option__list .config-option__tab-label, .centered-page__controls > label {
-  font-size: 20dp;
-  letter-spacing: 2.8dp;
-  line-height: 20dp;
+  font-size: 24dp;
+  letter-spacing: 0dp;
+  line-height: 24dp;
   font-style: normal;
-  font-weight: 700;
-  text-transform: uppercase;
+  font-weight: 500;
 }
 
 .config-option__details {
-  font-size: 18dp;
-  letter-spacing: 2.52dp;
-  line-height: 18dp;
+  font-size: 20dp;
+  letter-spacing: 0dp;
+  line-height: 20dp;
   font-style: normal;
   font-weight: 400;
 }
@@ -261,12 +259,12 @@ body, .config-debug__select-wrapper select, .config-debug__select-wrapper input,
 hr {
   display: block;
   padding: 1.5dp;
-  background: #08070D;
+  background: #0F1312;
 }
 
 body {
   color: #fff;
-  font-family: chiaro;
+  font-family: "Barlow";
   font-size: 20dp;
   font-style: normal;
   font-weight: normal;
@@ -281,8 +279,8 @@ div#window {
   box-sizing: border-box;
   width: 100%;
   height: 100%;
-  border-color: rgba(255, 255, 255, 0.2);
-  background-color: #121018;
+  border-color: rgba(234, 237, 227, 0.14);
+  background-color: #151A18;
 }
 
 div#content {
@@ -368,12 +366,12 @@ scrollbarvertical, scrollbarhorizontal {
   border: 0;
 }
 scrollbarvertical slidertrack, scrollbarhorizontal slidertrack {
-  background: #DABAF7;
+  background: #E8F68A;
   opacity: 0.05;
 }
 scrollbarvertical sliderbar, scrollbarhorizontal sliderbar {
   border-radius: 5dp;
-  background: #DABAF7;
+  background: #E8F68A;
   opacity: 0.1;
 }
 scrollbarvertical sliderbar:hover:not(:active), scrollbarhorizontal sliderbar:hover:not(:active) {
@@ -415,7 +413,7 @@ scrollbarhorizontal sliderbar {
   bottom: 0;
   left: 0;
   padding: 64dp;
-  background-color: rgba(255, 255, 255, 0.1);
+  background-color: rgba(234, 237, 227, 0.08);
 }
 
 .centered-page__modal {
@@ -429,8 +427,8 @@ scrollbarhorizontal sliderbar {
   margin: auto;
   border-width: 1.1dp;
   border-radius: 16dp;
-  border-color: rgba(255, 255, 255, 0.2);
-  background: rgba(8, 7, 13, 0.9);
+  border-color: rgba(234, 237, 227, 0.14);
+  background: rgba(11, 14, 13, 0.9);
 }
 .centered-page__modal > .tabs {
   display: flex;
@@ -473,7 +471,7 @@ scrollbarhorizontal sliderbar {
 }
 
 .control-option {
-  color: #CCCCCC;
+  color: #B8BCB3;
   transition: color 0.05s linear-in-out, background-color 0.05s linear-in-out, opacity 0.05s linear-in-out;
   display: flex;
   position: relative;
@@ -487,23 +485,23 @@ scrollbarhorizontal sliderbar {
   background-color: rgba(0, 0, 0, 0);
 }
 .control-option svg {
-  image-color: #CCCCCC;
+  image-color: #B8BCB3;
 }
 .control-option svg {
   transition: image-color 0.05s linear-in-out, background-color 0.05s linear-in-out;
 }
 .control-option:focus-visible:not(:disabled, [disabled]), .control-option:hover:not(:disabled, [disabled]) {
-  color: #F2F2F2;
-  background-color: rgba(190, 184, 219, 0.1);
+  color: #F3F4EE;
+  background-color: rgba(234, 237, 227, 0.06);
 }
 .control-option:focus-visible:not(:disabled, [disabled]) svg, .control-option:hover:not(:disabled, [disabled]) svg {
-  image-color: #F2F2F2;
+  image-color: #F3F4EE;
 }
 .control-option:disabled, .control-option[disabled] {
   opacity: 0.5;
 }
 [cur-binding-slot="0"] .control-option--active .control-option__binding[bind-slot="0"] {
-  border-color: #F86039;
+  border-color: #E36B55;
 }
 [cur-binding-slot="0"] .control-option--active .control-option__binding[bind-slot="0"] .control-option__binding-icon {
   opacity: 0;
@@ -512,7 +510,7 @@ scrollbarhorizontal sliderbar {
   opacity: 1;
 }
 [cur-binding-slot="1"] .control-option--active .control-option__binding[bind-slot="1"] {
-  border-color: #F86039;
+  border-color: #E36B55;
 }
 [cur-binding-slot="1"] .control-option--active .control-option__binding[bind-slot="1"] .control-option__binding-icon {
   opacity: 0;
@@ -543,7 +541,7 @@ scrollbarhorizontal sliderbar {
 }
 
 .control-option__binding {
-  color: #CCCCCC;
+  color: #B8BCB3;
   transition: color 0.05s linear-in-out, background-color 0.05s linear-in-out, opacity 0.05s linear-in-out, border-color 0.05s linear-in-out;
   display: flex;
   position: relative;
@@ -556,35 +554,35 @@ scrollbarhorizontal sliderbar {
   padding: 8dp;
   border-width: 1.1dp;
   border-radius: 8dp;
-  border-color: rgba(190, 184, 219, 0.1);
-  background-color: rgba(190, 184, 219, 0.1);
+  border-color: rgba(234, 237, 227, 0.06);
+  background-color: rgba(234, 237, 227, 0.06);
 }
 .control-option__binding svg {
-  image-color: #CCCCCC;
+  image-color: #B8BCB3;
 }
 .control-option__binding svg {
   transition: image-color 0.05s linear-in-out, background-color 0.05s linear-in-out;
 }
 .control-option__binding:focus, .control-option__binding:hover {
-  color: #F2F2F2;
-  border-color: #F2F2F2;
-  background-color: rgba(255, 255, 255, 0.1);
+  color: #F3F4EE;
+  border-color: #F3F4EE;
+  background-color: rgba(234, 237, 227, 0.08);
 }
 .control-option__binding:focus svg, .control-option__binding:hover svg {
-  image-color: #F2F2F2;
+  image-color: #F3F4EE;
 }
 .control-option__binding:active {
-  color: rgb(244.6, 244.6, 244.6);
+  color: rgb(245.4, 246.2, 241.4);
 }
 .control-option__binding:active svg {
-  image-color: rgb(244.6, 244.6, 244.6);
+  image-color: rgb(245.4, 246.2, 241.4);
 }
 .control-option__binding:disabled, .control-option__binding[disabled] {
-  color: #CCCCCC;
+  color: #B8BCB3;
   opacity: 0.5;
 }
 .control-option__binding:disabled svg, .control-option__binding[disabled] svg {
-  image-color: #CCCCCC;
+  image-color: #B8BCB3;
 }
 .control-option__binding:not([disabled]) {
   cursor: pointer;
@@ -623,7 +621,7 @@ scrollbarhorizontal sliderbar {
   height: 24dp;
   animation: 1.5s sine-in-out infinite control-option__binding-recording-scale;
   border-radius: 24dp;
-  background-color: #F86039;
+  background-color: #E36B55;
 }
 .control-option__binding-recording .control-option__binding-edge {
   position: absolute;
@@ -636,7 +634,7 @@ scrollbarhorizontal sliderbar {
 .control-option__binding-recording .control-option__binding-edge > svg.control-option__binding-edge-svg {
   width: 36dp;
   height: 36dp;
-  image-color: #F86039;
+  image-color: #E36B55;
 }
 
 /*
@@ -660,13 +658,13 @@ scrollbarhorizontal sliderbar {
   padding: 20dp 24dp;
   opacity: 0.9;
   background-color: rgba(0, 0, 0, 0);
-  color: rgba(255, 255, 255, 0.6);
+  color: rgba(234, 237, 227, 0.48);
 }
 .tab:selected {
-  color: #F2F2F2;
+  color: #F3F4EE;
 }
 .tab:selected .tab__indicator {
-  background-color: rgba(255, 255, 255, 0.6);
+  background-color: rgba(234, 237, 227, 0.6);
 }
 .tab:selected:hover {
   cursor: default;
@@ -680,7 +678,7 @@ scrollbarhorizontal sliderbar {
 }
 .tab:focus, .tab:hover {
   opacity: 1;
-  color: #F2F2F2;
+  color: #F3F4EE;
   cursor: pointer;
 }
 
@@ -709,7 +707,7 @@ scrollbarhorizontal sliderbar {
 
 .config__form {
   border-top-width: 1.1dp;
-  border-top-color: rgba(255, 255, 255, 0.1);
+  border-top-color: rgba(234, 237, 227, 0.08);
   display: flex;
   flex: 1 1 100%;
   flex-direction: column;
@@ -737,10 +735,10 @@ scrollbarhorizontal sliderbar {
   white-space: pre-line;
 }
 .config__wrapper p b {
-  color: #B97DF2;
+  color: #D7EE3A;
 }
 .config__wrapper p i {
-  color: #E9CD35;
+  color: #E3B04B;
   font-style: normal;
 }
 
@@ -764,13 +762,13 @@ scrollbarhorizontal sliderbar {
 
 .config__header {
   border-bottom-width: 1.1dp;
-  border-bottom-color: rgba(255, 255, 255, 0.1);
+  border-bottom-color: rgba(234, 237, 227, 0.08);
   padding: 12dp 20dp;
 }
 
 .config__footer {
   border-top-width: 1.1dp;
-  border-top-color: rgba(255, 255, 255, 0.1);
+  border-top-color: rgba(234, 237, 227, 0.08);
   padding: 20dp 20dp;
   border-bottom-right-radius: 16dp;
   border-bottom-left-radius: 16dp;
@@ -804,7 +802,7 @@ scrollbarhorizontal sliderbar {
   overflow-y: auto;
 }
 .config-group__title {
-  color: #B97DF2;
+  color: #D7EE3A;
 }
 .config-group__title--hidden {
   display: none;
@@ -871,12 +869,12 @@ scrollbarhorizontal sliderbar {
   height: auto;
   margin: 4dp 12dp 0;
   padding: 8dp 0;
-  color: rgba(255, 255, 255, 0.6);
+  color: rgba(234, 237, 227, 0.48);
   tab-index: none;
 }
 .config-option__radio-tabs .config-option__tab-label:hover,
 .config-option__list .config-option__tab-label:hover {
-  color: #F2F2F2;
+  color: #F3F4EE;
   cursor: pointer;
 }
 .config-option__radio-tabs .config-option__checkbox-wrapper,
@@ -887,7 +885,7 @@ scrollbarhorizontal sliderbar {
   margin: 4dp 12dp 0;
   border-radius: 8dp;
   opacity: 0.5;
-  background-color: rgba(190, 184, 219, 0.1);
+  background-color: rgba(234, 237, 227, 0.06);
   cursor: pointer;
 }
 .config-option__radio-tabs .config-option__checkbox-wrapper:hover,
@@ -896,7 +894,7 @@ scrollbarhorizontal sliderbar {
 }
 .config-option__radio-tabs .config-option__checkbox-wrapper[checked],
 .config-option__list .config-option__checkbox-wrapper[checked] {
-  background-color: #3333FF;
+  background-color: #D7EE3A;
 }
 .config-option__radio-tabs .config-option__checkbox,
 .config-option__list .config-option__checkbox {
@@ -915,8 +913,8 @@ scrollbarhorizontal sliderbar {
 .config-option__radio-tabs input.radio:not(:disabled):checked + .config-option__tab-label,
 .config-option__list input.radio:not(:disabled):checked + .config-option__tab-label {
   border-bottom: 1dp;
-  border-color: #F2F2F2;
-  color: #F2F2F2;
+  border-color: #F3F4EE;
+  color: #F3F4EE;
 }
 .config-option__radio-tabs input.radio:not(:disabled):checked + .config-option__tab-label:hover,
 .config-option__list input.radio:not(:disabled):checked + .config-option__tab-label:hover {
@@ -926,13 +924,13 @@ scrollbarhorizontal sliderbar {
 .rmlui-window:not([mouse-active]) .config-option__list input.radio:not(:disabled):focus + .config-option__tab-label {
   transition: none;
   animation: blue-pulse 0.75s infinite;
-  border-color: #17D6E8;
-  color: #17D6E8;
+  border-color: #D7EE3A;
+  color: #D7EE3A;
 }
 .config-option__radio-tabs input.radio:not(:disabled):focus + .config-option__tab-label, .config-option__radio-tabs input.radio:not(:disabled):hover + .config-option__tab-label,
 .config-option__list input.radio:not(:disabled):focus + .config-option__tab-label,
 .config-option__list input.radio:not(:disabled):hover + .config-option__tab-label {
-  color: #F2F2F2;
+  color: #F3F4EE;
 }
 .config-option__radio-tabs input.radio:disabled + .config-option__tab-label,
 .config-option__list input.radio:disabled + .config-option__tab-label {
@@ -947,7 +945,7 @@ scrollbarhorizontal sliderbar {
   transition: color 0.05s linear-in-out, background-color 0.05s linear-in-out;
   height: 2dp;
   margin-top: 8dp;
-  background-color: rgba(255, 255, 255, 0.2);
+  background-color: rgba(234, 237, 227, 0.14);
 }
 .config-option__radio-tabs input.range sliderbar,
 .config-option__list input.range sliderbar {
@@ -959,24 +957,24 @@ scrollbarhorizontal sliderbar {
   margin-left: -8dp;
   transition: background-color 0.05s linear-in-out;
   border-radius: 8dp;
-  background-color: #CCCCCC;
+  background-color: #B8BCB3;
 }
 .rmlui-window:not([mouse-active]) .config-option__radio-tabs input.range sliderbar:focus,
 .rmlui-window:not([mouse-active]) .config-option__list input.range sliderbar:focus {
   border-width: 1.1dp;
-  border-color: #3333FF;
+  border-color: #D7EE3A;
   animation: blue-pulse-background 0.75s infinite;
 }
 .config-option__radio-tabs input.range sliderbar:hover,
 .config-option__list input.range sliderbar:hover {
-  background-color: #F2F2F2;
+  background-color: #F3F4EE;
   cursor: pointer;
 }
 .config-option__radio-tabs input.range sliderbar:active,
 .config-option__radio-tabs input.range slidertrack:active + sliderbar,
 .config-option__list input.range sliderbar:active,
 .config-option__list input.range slidertrack:active + sliderbar {
-  background-color: #17D6E8;
+  background-color: #D7EE3A;
 }
 .config-option__radio-tabs input.range sliderarrowdec,
 .config-option__radio-tabs input.range sliderarrowinc,
@@ -988,7 +986,7 @@ scrollbarhorizontal sliderbar {
 .config-option__details {
   height: 18dp;
   margin: 14dp 12dp 0;
-  color: #B97DF2;
+  color: #D7EE3A;
 }
 
 .config-option-color {
@@ -1011,7 +1009,7 @@ scrollbarhorizontal sliderbar {
   height: 100%;
   border-width: 1.1dp;
   border-radius: 16dp;
-  border-color: rgba(255, 255, 255, 0.2);
+  border-color: rgba(234, 237, 227, 0.14);
 }
 .config-option-color__hsv-wrapper {
   display: flex;
@@ -1048,7 +1046,7 @@ scrollbarhorizontal sliderbar {
   margin: 0 12dp;
   margin-right: 16dp;
   padding: 0;
-  color: #F2F2F2;
+  color: #F3F4EE;
   tab-index: none;
 }
 .config-option-range__range-input {
@@ -1058,7 +1056,7 @@ scrollbarhorizontal sliderbar {
   transition: color 0.05s linear-in-out, background-color 0.05s linear-in-out;
   height: 2dp;
   margin-top: 8dp;
-  background-color: rgba(255, 255, 255, 0.2);
+  background-color: rgba(234, 237, 227, 0.14);
 }
 .config-option-range__range-input sliderbar {
   transition: color 0.05s linear-in-out, background-color 0.05s linear-in-out;
@@ -1069,20 +1067,20 @@ scrollbarhorizontal sliderbar {
   margin-left: -8dp;
   transition: background-color 0.05s linear-in-out;
   border-radius: 8dp;
-  background-color: #CCCCCC;
+  background-color: #B8BCB3;
 }
 .rmlui-window:not([mouse-active]) .config-option-range__range-input sliderbar:focus {
   border-width: 1.1dp;
-  border-color: #3333FF;
+  border-color: #D7EE3A;
   animation: blue-pulse-background 0.75s infinite;
 }
 .config-option-range__range-input sliderbar:hover {
-  background-color: #F2F2F2;
+  background-color: #F3F4EE;
   cursor: pointer;
 }
 .config-option-range__range-input sliderbar:active,
 .config-option-range__range-input slidertrack:active + sliderbar {
-  background-color: #17D6E8;
+  background-color: #D7EE3A;
 }
 .config-option-range__range-input sliderarrowdec,
 .config-option-range__range-input sliderarrowinc {
@@ -1100,7 +1098,7 @@ scrollbarhorizontal sliderbar {
   margin: 0 12dp;
   margin-right: 16dp;
   padding: 0;
-  color: #F2F2F2;
+  color: #F3F4EE;
   tab-index: none;
 }
 
@@ -1161,17 +1159,17 @@ scrollbarhorizontal sliderbar {
 }
 .config-option-dropdown__select selectbox, .config-option-dropdown__wrapper selectbox, .config-option-textfield__select selectbox, .config-option-textfield__wrapper selectbox {
   border-width: 1.1dp;
-  border-color: rgba(255, 255, 255, 0.2);
+  border-color: rgba(234, 237, 227, 0.14);
   margin-top: 2dp;
   padding: 4dp 0;
   border-radius: 12dp;
-  background-color: #191622;
+  background-color: #1C2220;
 }
 .config-option-dropdown__select selectbox option, .config-option-dropdown__wrapper selectbox option, .config-option-textfield__select selectbox option, .config-option-textfield__wrapper selectbox option {
   transition: color 0.05s linear-in-out, background-color 0.05s linear-in-out;
   padding: 8dp 12dp;
   background-color: rgba(0, 0, 0, 0);
-  color: #CCCCCC;
+  color: #B8BCB3;
   font-weight: 400;
 }
 .config-option-dropdown__select selectbox option:hover, .config-option-dropdown__select selectbox option:focus, .config-option-dropdown__wrapper selectbox option:hover, .config-option-dropdown__wrapper selectbox option:focus, .config-option-textfield__select selectbox option:hover, .config-option-textfield__select selectbox option:focus, .config-option-textfield__wrapper selectbox option:hover, .config-option-textfield__wrapper selectbox option:focus {
@@ -1202,10 +1200,10 @@ scrollbarhorizontal sliderbar {
   white-space: pre-line;
 }
 .config-description__contents b {
-  color: #B97DF2;
+  color: #D7EE3A;
 }
 .config-description__contents i {
-  color: #E9CD35;
+  color: #E3B04B;
   font-style: normal;
 }
 
@@ -1451,10 +1449,10 @@ scrollbarhorizontal sliderbar {
 }
 
 .input-viz__button {
-  color: #F2F2F2;
+  color: #F3F4EE;
 }
 .input-viz__button svg {
-  image-color: #F2F2F2;
+  image-color: #F3F4EE;
 }
 .input-viz__button--sm {
   width: 64dp;
@@ -1481,19 +1479,19 @@ scrollbarhorizontal sliderbar {
   height: 84dp;
 }
 .input-viz__button--C svg {
-  image-color: #E9CD35;
+  image-color: #E3B04B;
 }
 .input-viz__button--A {
   margin-top: auto;
 }
 .input-viz__button--A svg {
-  image-color: #3333FF;
+  image-color: #5B7BD9;
 }
 .input-viz__button--B svg {
-  image-color: #45D043;
+  image-color: #6CC46A;
 }
 .input-viz__button--Start svg {
-  image-color: #F86039;
+  image-color: #E36B55;
 }
 
 .input-viz__Z {
@@ -1501,7 +1499,7 @@ scrollbarhorizontal sliderbar {
   height: 136dp;
 }
 .input-viz__Z svg {
-  image-color: #E9CD35;
+  image-color: #E3B04B;
 }
 .input-viz__Z > svg {
   width: 136dp;
@@ -1514,7 +1512,7 @@ scrollbarhorizontal sliderbar {
   position: relative;
 }
 .input-viz.input-viz__dpad svg {
-  image-color: #F2F2F2;
+  image-color: #F3F4EE;
 }
 .input-viz.input-viz__dpad > svg {
   width: 192dp;
@@ -1616,7 +1614,7 @@ scrollbarhorizontal sliderbar {
   height: 136dp;
 }
 .input-viz__L svg {
-  image-color: #17D6E8;
+  image-color: #D7EE3A;
 }
 .input-viz__L > svg {
   width: 136dp;
@@ -1662,9 +1660,9 @@ scrollbarhorizontal sliderbar {
 }
 
 .button {
-  border-color: rgba(185, 125, 242, 0.8);
-  background-color: rgba(185, 125, 242, 0.05);
-  color: #CCCCCC;
+  border-color: rgba(215, 238, 58, 0.8);
+  background-color: rgba(215, 238, 58, 0.05);
+  color: #B8BCB3;
   transition: color 0.05s linear-in-out, background-color 0.05s linear-in-out;
   display: block;
   width: auto;
@@ -1674,118 +1672,118 @@ scrollbarhorizontal sliderbar {
   border-radius: 12dp;
 }
 .button:focus, .button:hover {
-  border-color: #B97DF2;
-  background-color: rgba(185, 125, 242, 0.3);
-  color: #F2F2F2;
+  border-color: #D7EE3A;
+  background-color: rgba(215, 238, 58, 0.3);
+  color: #F3F4EE;
 }
 .button:disabled, .button[disabled] {
-  color: rgba(255, 255, 255, 0.6);
+  color: rgba(234, 237, 227, 0.48);
 }
 .button:active {
-  background-color: rgba(185, 125, 242, 0.2);
-  color: rgb(244.6, 244.6, 244.6);
+  background-color: rgba(215, 238, 58, 0.2);
+  color: rgb(245.4, 246.2, 241.4);
 }
 .button--primary {
-  border-color: rgba(185, 125, 242, 0.8);
-  background-color: rgba(185, 125, 242, 0.05);
-  color: #CCCCCC;
+  border-color: rgba(215, 238, 58, 0.8);
+  background-color: rgba(215, 238, 58, 0.05);
+  color: #B8BCB3;
 }
 .button--primary:focus, .button--primary:hover {
-  border-color: #B97DF2;
-  background-color: rgba(185, 125, 242, 0.3);
-  color: #F2F2F2;
+  border-color: #D7EE3A;
+  background-color: rgba(215, 238, 58, 0.3);
+  color: #F3F4EE;
 }
 .button--primary:disabled, .button--primary[disabled] {
-  color: rgba(255, 255, 255, 0.6);
+  color: rgba(234, 237, 227, 0.48);
 }
 .button--primary:active {
-  background-color: rgba(185, 125, 242, 0.2);
-  color: rgb(244.6, 244.6, 244.6);
+  background-color: rgba(215, 238, 58, 0.2);
+  color: rgb(245.4, 246.2, 241.4);
 }
 .button--secondary {
-  border-color: rgba(23, 214, 232, 0.8);
-  background-color: rgba(23, 214, 232, 0.05);
-  color: #CCCCCC;
+  border-color: rgba(215, 238, 58, 0.8);
+  background-color: rgba(215, 238, 58, 0.05);
+  color: #B8BCB3;
 }
 .button--secondary:focus, .button--secondary:hover {
-  border-color: #17D6E8;
-  background-color: rgba(23, 214, 232, 0.3);
-  color: #F2F2F2;
+  border-color: #D7EE3A;
+  background-color: rgba(215, 238, 58, 0.3);
+  color: #F3F4EE;
 }
 .button--secondary:disabled, .button--secondary[disabled] {
-  color: rgba(255, 255, 255, 0.6);
+  color: rgba(234, 237, 227, 0.48);
 }
 .button--secondary:active {
-  background-color: rgba(23, 214, 232, 0.2);
-  color: rgb(244.6, 244.6, 244.6);
+  background-color: rgba(215, 238, 58, 0.2);
+  color: rgb(245.4, 246.2, 241.4);
 }
 .button--tertiary {
-  border-color: rgba(242, 242, 242, 0.8);
-  background-color: rgba(242, 242, 242, 0.05);
-  color: #CCCCCC;
+  border-color: rgba(243, 244, 238, 0.8);
+  background-color: rgba(243, 244, 238, 0.05);
+  color: #B8BCB3;
 }
 .button--tertiary:focus, .button--tertiary:hover {
-  border-color: #F2F2F2;
-  background-color: rgba(242, 242, 242, 0.3);
-  color: #F2F2F2;
+  border-color: #F3F4EE;
+  background-color: rgba(243, 244, 238, 0.3);
+  color: #F3F4EE;
 }
 .button--tertiary:disabled, .button--tertiary[disabled] {
-  color: rgba(255, 255, 255, 0.6);
+  color: rgba(234, 237, 227, 0.48);
 }
 .button--tertiary:active {
-  background-color: rgba(242, 242, 242, 0.2);
-  color: rgb(244.6, 244.6, 244.6);
+  background-color: rgba(243, 244, 238, 0.2);
+  color: rgb(245.4, 246.2, 241.4);
 }
 .button--success {
-  border-color: rgba(69, 208, 67, 0.8);
-  background-color: rgba(69, 208, 67, 0.05);
-  color: #CCCCCC;
+  border-color: rgba(108, 196, 106, 0.8);
+  background-color: rgba(108, 196, 106, 0.05);
+  color: #B8BCB3;
 }
 .button--success:focus, .button--success:hover {
-  border-color: #45D043;
-  background-color: rgba(69, 208, 67, 0.3);
-  color: #F2F2F2;
+  border-color: #6CC46A;
+  background-color: rgba(108, 196, 106, 0.3);
+  color: #F3F4EE;
 }
 .button--success:disabled, .button--success[disabled] {
-  color: rgba(255, 255, 255, 0.6);
+  color: rgba(234, 237, 227, 0.48);
 }
 .button--success:active {
-  background-color: rgba(69, 208, 67, 0.2);
-  color: rgb(244.6, 244.6, 244.6);
+  background-color: rgba(108, 196, 106, 0.2);
+  color: rgb(245.4, 246.2, 241.4);
 }
 .button--error {
-  border-color: rgba(248, 96, 57, 0.8);
-  background-color: rgba(248, 96, 57, 0.05);
-  color: #CCCCCC;
+  border-color: rgba(227, 107, 85, 0.8);
+  background-color: rgba(227, 107, 85, 0.05);
+  color: #B8BCB3;
 }
 .button--error:focus, .button--error:hover {
-  border-color: #F86039;
-  background-color: rgba(248, 96, 57, 0.3);
-  color: #F2F2F2;
+  border-color: #E36B55;
+  background-color: rgba(227, 107, 85, 0.3);
+  color: #F3F4EE;
 }
 .button--error:disabled, .button--error[disabled] {
-  color: rgba(255, 255, 255, 0.6);
+  color: rgba(234, 237, 227, 0.48);
 }
 .button--error:active {
-  background-color: rgba(248, 96, 57, 0.2);
-  color: rgb(244.6, 244.6, 244.6);
+  background-color: rgba(227, 107, 85, 0.2);
+  color: rgb(245.4, 246.2, 241.4);
 }
 .button--warning {
-  border-color: rgba(233, 205, 53, 0.8);
-  background-color: rgba(233, 205, 53, 0.05);
-  color: #CCCCCC;
+  border-color: rgba(227, 176, 75, 0.8);
+  background-color: rgba(227, 176, 75, 0.05);
+  color: #B8BCB3;
 }
 .button--warning:focus, .button--warning:hover {
-  border-color: #E9CD35;
-  background-color: rgba(233, 205, 53, 0.3);
-  color: #F2F2F2;
+  border-color: #E3B04B;
+  background-color: rgba(227, 176, 75, 0.3);
+  color: #F3F4EE;
 }
 .button--warning:disabled, .button--warning[disabled] {
-  color: rgba(255, 255, 255, 0.6);
+  color: rgba(234, 237, 227, 0.48);
 }
 .button--warning:active {
-  background-color: rgba(233, 205, 53, 0.2);
-  color: rgb(244.6, 244.6, 244.6);
+  background-color: rgba(227, 176, 75, 0.2);
+  color: rgb(245.4, 246.2, 241.4);
 }
 .button:not([disabled]) {
   cursor: pointer;
@@ -1806,7 +1804,7 @@ scrollbarhorizontal sliderbar {
     </button>
 */
 .icon-button {
-  color: #CCCCCC;
+  color: #B8BCB3;
   transition: color 0.05s linear-in-out, background-color 0.05s linear-in-out, opacity 0.05s linear-in-out, border-color 0.05s linear-in-out;
   display: flex;
   align-items: center;
@@ -1823,31 +1821,31 @@ scrollbarhorizontal sliderbar {
   background-color: rgba(0, 0, 0, 0);
 }
 .icon-button svg {
-  image-color: #CCCCCC;
+  image-color: #B8BCB3;
 }
 .icon-button svg {
   transition: image-color 0.05s linear-in-out, background-color 0.05s linear-in-out;
 }
 .icon-button:focus, .icon-button:hover {
-  color: #F2F2F2;
-  background-color: rgba(255, 255, 255, 0.2);
+  color: #F3F4EE;
+  background-color: rgba(234, 237, 227, 0.14);
 }
 .icon-button:focus svg, .icon-button:hover svg {
-  image-color: #F2F2F2;
+  image-color: #F3F4EE;
 }
 .icon-button:active {
-  color: rgb(244.6, 244.6, 244.6);
-  background-color: rgba(255, 255, 255, 0.1);
+  color: rgb(245.4, 246.2, 241.4);
+  background-color: rgba(234, 237, 227, 0.08);
 }
 .icon-button:active svg {
-  image-color: rgb(244.6, 244.6, 244.6);
+  image-color: rgb(245.4, 246.2, 241.4);
 }
 .icon-button:disabled, .icon-button[disabled] {
-  color: #CCCCCC;
+  color: #B8BCB3;
   opacity: 0.5;
 }
 .icon-button:disabled svg, .icon-button[disabled] svg {
-  image-color: #CCCCCC;
+  image-color: #B8BCB3;
 }
 .icon-button:not([disabled]) {
   cursor: pointer;
@@ -1857,70 +1855,70 @@ scrollbarhorizontal sliderbar {
   height: 32dp;
 }
 .icon-button--primary {
-  border-color: rgba(185, 125, 242, 0.8);
-  background-color: rgba(185, 125, 242, 0.05);
+  border-color: rgba(215, 238, 58, 0.8);
+  background-color: rgba(215, 238, 58, 0.05);
 }
 .icon-button--primary:focus, .icon-button--primary:hover {
-  border-color: #B97DF2;
-  background-color: rgba(185, 125, 242, 0.3);
+  border-color: #D7EE3A;
+  background-color: rgba(215, 238, 58, 0.3);
 }
 .icon-button--primary:active {
-  background-color: rgba(185, 125, 242, 0.2);
+  background-color: rgba(215, 238, 58, 0.2);
 }
 .icon-button--secondary {
-  border-color: rgba(23, 214, 232, 0.8);
-  background-color: rgba(23, 214, 232, 0.05);
+  border-color: rgba(215, 238, 58, 0.8);
+  background-color: rgba(215, 238, 58, 0.05);
 }
 .icon-button--secondary:focus, .icon-button--secondary:hover {
-  border-color: #17D6E8;
-  background-color: rgba(23, 214, 232, 0.3);
+  border-color: #D7EE3A;
+  background-color: rgba(215, 238, 58, 0.3);
 }
 .icon-button--secondary:active {
-  background-color: rgba(23, 214, 232, 0.2);
+  background-color: rgba(215, 238, 58, 0.2);
 }
 .icon-button--tertiary {
-  border-color: rgba(242, 242, 242, 0.8);
-  background-color: rgba(242, 242, 242, 0.05);
+  border-color: rgba(243, 244, 238, 0.8);
+  background-color: rgba(243, 244, 238, 0.05);
 }
 .icon-button--tertiary:focus, .icon-button--tertiary:hover {
-  border-color: #F2F2F2;
-  background-color: rgba(242, 242, 242, 0.3);
+  border-color: #F3F4EE;
+  background-color: rgba(243, 244, 238, 0.3);
 }
 .icon-button--tertiary:active {
-  background-color: rgba(242, 242, 242, 0.2);
+  background-color: rgba(243, 244, 238, 0.2);
 }
 .icon-button--success {
-  border-color: rgba(69, 208, 67, 0.8);
-  background-color: rgba(69, 208, 67, 0.05);
+  border-color: rgba(108, 196, 106, 0.8);
+  background-color: rgba(108, 196, 106, 0.05);
 }
 .icon-button--success:focus, .icon-button--success:hover {
-  border-color: #45D043;
-  background-color: rgba(69, 208, 67, 0.3);
+  border-color: #6CC46A;
+  background-color: rgba(108, 196, 106, 0.3);
 }
 .icon-button--success:active {
-  background-color: rgba(69, 208, 67, 0.2);
+  background-color: rgba(108, 196, 106, 0.2);
 }
 .icon-button--error {
-  border-color: rgba(248, 96, 57, 0.8);
-  background-color: rgba(248, 96, 57, 0.05);
+  border-color: rgba(227, 107, 85, 0.8);
+  background-color: rgba(227, 107, 85, 0.05);
 }
 .icon-button--error:focus, .icon-button--error:hover {
-  border-color: #F86039;
-  background-color: rgba(248, 96, 57, 0.3);
+  border-color: #E36B55;
+  background-color: rgba(227, 107, 85, 0.3);
 }
 .icon-button--error:active {
-  background-color: rgba(248, 96, 57, 0.2);
+  background-color: rgba(227, 107, 85, 0.2);
 }
 .icon-button--warning {
-  border-color: rgba(233, 205, 53, 0.8);
-  background-color: rgba(233, 205, 53, 0.05);
+  border-color: rgba(227, 176, 75, 0.8);
+  background-color: rgba(227, 176, 75, 0.05);
 }
 .icon-button--warning:focus, .icon-button--warning:hover {
-  border-color: #E9CD35;
-  background-color: rgba(233, 205, 53, 0.3);
+  border-color: #E3B04B;
+  background-color: rgba(227, 176, 75, 0.3);
 }
 .icon-button--warning:active {
-  background-color: rgba(233, 205, 53, 0.2);
+  background-color: rgba(227, 176, 75, 0.2);
 }
 
 .launcher {
@@ -1930,7 +1928,7 @@ scrollbarhorizontal sliderbar {
   justify-content: space-between;
   width: 100%;
   height: 100%;
-  background-color: #08070D;
+  background-color: #0F1312;
 }
 
 .launcher__vertical-split {
@@ -2027,7 +2025,7 @@ scrollbarhorizontal sliderbar {
 
 */
 .menu-list-item {
-  color: #CCCCCC;
+  color: #B8BCB3;
   display: flex;
   flex-direction: row;
   align-items: center;
@@ -2039,7 +2037,7 @@ scrollbarhorizontal sliderbar {
   cursor: pointer;
 }
 .menu-list-item svg {
-  image-color: #CCCCCC;
+  image-color: #B8BCB3;
 }
 .menu-list-item--right {
   flex-direction: row-reverse;
@@ -2050,14 +2048,14 @@ scrollbarhorizontal sliderbar {
   opacity: 1;
 }
 .menu-list-item--right.menu-list-item:focus:not(:disabled, [disabled]), .menu-list-item--right.menu-list-item:hover:not(:disabled, [disabled]) {
-  decorator: horizontal-gradient(#7A2AC600 #DABAF714);
+  decorator: horizontal-gradient(#9FB32000 #E8F68A14);
 }
 .menu-list-item:focus:not(:disabled, [disabled]), .menu-list-item:hover:not(:disabled, [disabled]) {
-  color: #B97DF2;
-  decorator: horizontal-gradient(#7A2AC614 #DABAF700);
+  color: #D7EE3A;
+  decorator: horizontal-gradient(#9FB32014 #E8F68A00);
 }
 .menu-list-item:focus:not(:disabled, [disabled]) svg, .menu-list-item:hover:not(:disabled, [disabled]) svg {
-  image-color: #B97DF2;
+  image-color: #D7EE3A;
 }
 .menu-list-item:focus:not(:disabled, [disabled]) .menu-list-item__bullet, .menu-list-item:hover:not(:disabled, [disabled]) .menu-list-item__bullet {
   opacity: 1;
@@ -2097,7 +2095,7 @@ scrollbarhorizontal sliderbar {
   height: auto;
   padding: 0;
   background-color: rgba(0, 0, 0, 0);
-  color: #CCCCCC;
+  color: #B8BCB3;
   text-align: left;
   cursor: pointer;
 }
@@ -2108,11 +2106,11 @@ scrollbarhorizontal sliderbar {
   text-align: right;
 }
 .subtitle-title[selected] {
-  color: #F2F2F2;
+  color: #F3F4EE;
   cursor: default;
 }
 .subtitle-title:focus:not(:disabled, [disabled]), .subtitle-title:hover:not(:disabled, [disabled], [selected]) {
-  color: #B97DF2;
+  color: #D7EE3A;
 }
 .subtitle-title:disabled, .subtitle-title[disabled] {
   opacity: 0.5;
@@ -2145,11 +2143,11 @@ scrollbarhorizontal sliderbar {
 }
 .toggle:hover, .toggle:focus-visible, .toggle:focus {
   opacity: 1;
-  background-color: rgba(23, 214, 232, 0.3);
+  background-color: rgba(215, 238, 58, 0.3);
 }
 .toggle:active {
   opacity: 1;
-  background-color: rgba(23, 214, 232, 0.05);
+  background-color: rgba(215, 238, 58, 0.05);
 }
 .toggle .toggle__border {
   position: absolute;
@@ -2158,7 +2156,7 @@ scrollbarhorizontal sliderbar {
   bottom: 1.1dp;
   left: 1.1dp;
   border-width: 1.1dp;
-  border-color: #A2EFF6;
+  border-color: #E8F68A;
   display: block;
   border-radius: 36dp;
 }
@@ -2170,18 +2168,18 @@ scrollbarhorizontal sliderbar {
   height: 64dp;
   transform: translateY(-50%);
   border-radius: 32dp;
-  background: #25A1AD;
+  background: #9FB320;
 }
 .toggle--checked .toggle__floater {
   left: 78dp;
 }
 .toggle--checked .toggle__icon.toggle__icon--left {
   opacity: 0.9;
-  color: #A2EFF6;
+  color: #E8F68A;
 }
 .toggle--checked .toggle__icon.toggle__icon--right {
   opacity: 1;
-  color: #F2F2F2;
+  color: #F3F4EE;
 }
 
 .toggle__icons {
@@ -2203,11 +2201,11 @@ scrollbarhorizontal sliderbar {
   justify-content: center;
   width: 56dp;
   height: 56dp;
-  color: #F2F2F2;
+  color: #F3F4EE;
 }
 .toggle__icon--right {
   opacity: 1;
-  color: #A2EFF6;
+  color: #E8F68A;
 }
 
 .bottom-left {
@@ -2224,7 +2222,7 @@ scrollbarhorizontal sliderbar {
 }
 
 .prompt__overlay {
-  background-color: rgba(190, 184, 219, 0.1);
+  background-color: rgba(234, 237, 227, 0.06);
   pointer-events: auto;
 }
 .prompt__overlay, .prompt__content-wrapper {
@@ -2255,8 +2253,8 @@ scrollbarhorizontal sliderbar {
   margin: auto;
   border-width: 1.1dp;
   border-radius: 16dp;
-  border-color: rgba(255, 255, 255, 0.2);
-  background: rgba(8, 7, 13, 0.9);
+  border-color: rgba(234, 237, 227, 0.14);
+  background: rgba(11, 14, 13, 0.9);
 }
 .prompt__content h3, .prompt__content p {
   margin: 24dp;
@@ -2270,7 +2268,7 @@ scrollbarhorizontal sliderbar {
   justify-content: center;
   padding: 24dp 12dp;
   border-top-width: 1.1dp;
-  border-top-color: rgba(255, 255, 255, 0.1);
+  border-top-color: rgba(234, 237, 227, 0.08);
 }
 .prompt__controls .button {
   min-width: 233.3333333333dp;
@@ -2297,10 +2295,10 @@ scrollbarhorizontal sliderbar {
 }
 
 .config-debug-option {
-  color: #CCCCCC;
+  color: #B8BCB3;
   transition: color 0.05s linear-in-out, background-color 0.05s linear-in-out, opacity 0.05s linear-in-out;
   border-bottom-width: 1.1dp;
-  border-bottom-color: rgba(255, 255, 255, 0.1);
+  border-bottom-color: rgba(234, 237, 227, 0.08);
   display: block;
   position: relative;
   flex-direction: column;
@@ -2310,17 +2308,17 @@ scrollbarhorizontal sliderbar {
   background-color: rgba(0, 0, 0, 0);
 }
 .config-debug-option svg {
-  image-color: #CCCCCC;
+  image-color: #B8BCB3;
 }
 .config-debug-option svg {
   transition: image-color 0.05s linear-in-out, background-color 0.05s linear-in-out;
 }
 .config-debug-option:focus:not(:disabled, [disabled]), .config-debug-option:focus-visible:not(:disabled, [disabled]), .config-debug-option:hover:not(:disabled, [disabled]) {
-  color: #F2F2F2;
-  background-color: rgba(190, 184, 219, 0.1);
+  color: #F3F4EE;
+  background-color: rgba(234, 237, 227, 0.06);
 }
 .config-debug-option:focus:not(:disabled, [disabled]) svg, .config-debug-option:focus-visible:not(:disabled, [disabled]) svg, .config-debug-option:hover:not(:disabled, [disabled]) svg {
-  image-color: #F2F2F2;
+  image-color: #F3F4EE;
 }
 .config-debug-option:disabled, .config-debug-option[disabled] {
   opacity: 0.5;
@@ -2427,7 +2425,7 @@ scrollbarhorizontal sliderbar {
 .config-debug__select-wrapper select selectbox {
   border-width: 1.1dp;
   border-color: rgba(255, 255, 255, 0.8);
-  background-color: #191622;
+  background-color: #1C2220;
   padding: 4dp 0;
   margin-top: 2dp;
   border-radius: 12dp;
@@ -2436,7 +2434,7 @@ scrollbarhorizontal sliderbar {
   transition: color 0.05s linear-in-out, background-color 0.05s linear-in-out;
   padding: 8dp 12dp;
   background-color: rgba(0, 0, 0, 0);
-  color: #CCCCCC;
+  color: #B8BCB3;
   font-weight: 400;
 }
 .config-debug__select-wrapper select selectbox option:hover, .config-debug__select-wrapper select selectbox option:focus {
@@ -2452,8 +2450,8 @@ scrollbarhorizontal sliderbar {
 
 body {
   box-sizing: border-box;
-  color: #F2F2F2;
-  font-family: chiaro;
+  color: #F3F4EE;
+  font-family: "Barlow";
 }
 
 .rmlui-window {
@@ -2471,42 +2469,42 @@ body {
 }
 
 button {
-  background-color: #7A2AC6;
+  background-color: #9FB320;
 }
 
 @keyframes blue-pulse {
   0% {
-    color: #17D6E8;
+    color: #D7EE3A;
   }
   50% {
-    color: #A2EFF6;
+    color: #D7EE3A;
   }
   100% {
-    color: #17D6E8;
+    color: #D7EE3A;
   }
 }
 @keyframes blue-pulse-with-border {
   0% {
-    border-color: #17D6E8;
-    color: #17D6E8;
+    border-color: #D7EE3A;
+    color: #D7EE3A;
   }
   50% {
-    border-color: #A2EFF6;
-    color: #A2EFF6;
+    border-color: #D7EE3A;
+    color: #D7EE3A;
   }
   100% {
-    border-color: #17D6E8;
-    color: #17D6E8;
+    border-color: #D7EE3A;
+    color: #D7EE3A;
   }
 }
 @keyframes blue-pulse-background {
   0% {
-    background-color: #17D6E8;
+    background-color: #D7EE3A;
   }
   50% {
-    background-color: #A2EFF6;
+    background-color: #D7EE3A;
   }
   100% {
-    background-color: #17D6E8;
+    background-color: #D7EE3A;
   }
 }

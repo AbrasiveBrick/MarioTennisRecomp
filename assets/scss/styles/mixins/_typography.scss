@@ -1,53 +1,53 @@
 
-$font-stack: chiaro;
+$font-stack: "Barlow";
 
 @mixin set-font-sizing($sz, $spacing) {
     // font-family: $font-stack;
     $sz-add: $sz + 4;
     font-size: space($sz-add);
-    letter-spacing: space($sz-add * $spacing);
+    // Sentence case, no tracking (unslop): $spacing is kept for call compatibility only.
+    letter-spacing: 0dp;
     line-height: space($sz-add);
 }
 
 %header-1 {
     @include set-font-sizing(64, 0.07);
     font-style: normal;
-	font-weight: 700;
+	font-weight: 500;
 }
 
 %header-2 {
     @include set-font-sizing(48, 0.07);
     font-style: normal;
-	font-weight: 700;
+	font-weight: 500;
 }
 
 %header-3 {
     @include set-font-sizing(32, 0.07);
     font-style: normal;
-	font-weight: 700;
+	font-weight: 500;
 }
 
 %label-lg {
     @include set-font-sizing(32, 0.11);
     font-style: normal;
-	font-weight: 700;
+	font-weight: 500;
 }
 
 %label-md {
     @include set-font-sizing(24, 0.11);
     font-style: normal;
-	font-weight: 700;
+	font-weight: 500;
 }
 
 %label-sm {
-    @include set-font-sizing(16, 0.14);
+    @include set-font-sizing(20, 0.14);
     font-style: normal;
-	font-weight: 700;
-    text-transform: uppercase;
+	font-weight: 500;
 }
 
 %label-xs {
-    @include set-font-sizing(14, 0.14);
+    @include set-font-sizing(16, 0.14);
     font-style: normal;
 	font-weight: 400;
 }
