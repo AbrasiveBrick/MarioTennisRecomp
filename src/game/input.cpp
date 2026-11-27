@@ -551,6 +551,7 @@ void recomp::set_input_controller_filter(int index) {
 // MT_PLAYERS=n reports n players regardless of controllers (player 2 can then be driven with
 // MT_INPUT_P2).
 int mt_net_forced_players();
+const char* mt_net_pad_choice();
 
 recomp::PortSource recomp::mt_port_source(int port) {
     PortSource src{};
@@ -592,7 +593,7 @@ recomp::PortSource recomp::mt_port_source(int port) {
         src.present = port < net_players;
         // MT_NET_PAD picks what drives this PC's player (read through port 0) in netplay:
         // "keyboard", or a controller number counted from 1. Default: keyboard and every controller.
-        static const char* net_pad = std::getenv("MT_NET_PAD");
+        const char* net_pad = mt_net_pad_choice();
         if (port == 0 && net_pad != nullptr && net_pad[0] != '\0') {
             if (std::string_view{ net_pad } == "keyboard") {
                 src.keyboard = true;
