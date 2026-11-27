@@ -277,6 +277,7 @@ struct Net {
     uint32_t remote_hash_frame[hash_ring]{};
     uint32_t latest_local_hash_frame = 0xFFFFFFFFu;
     bool desync_reported = false;
+    uint32_t last_compared_frame = 0xFFFFFFFFu;
     uint32_t mismatch_run = 0;     // consecutive compared frames whose hashes differ
     uint32_t mismatch_start = 0;
 };
@@ -325,6 +326,9 @@ WelcomePacket make_welcome(uint32_t nonce) {
 void check_hash_locked(uint32_t frame) {
     size_t slot = frame % Net::hash_ring;
     if (net.local_hash_frame[slot] != frame || net.remote_hash_frame[slot] != frame) return;
+    // Each frame counts once (the peer repeats its latest hash in every packet).
+    if (net.last_compared_frame != 0xFFFFFFFFu && frame <= net.last_compared_frame) return;
+    net.last_compared_frame = frame;
     // Single frames can differ while a streaming load is still landing in RAM, so only a mismatch that
     // persists counts as a desync.
     if (net.local_hash[slot] == net.remote_hash[slot]) {
