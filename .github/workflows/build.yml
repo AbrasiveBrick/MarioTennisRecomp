@@ -35,6 +35,8 @@ jobs:
       - uses: actions/checkout@v4
       - name: Install dependencies
         run: |
+          # The runner's Microsoft package repository is not needed and sometimes refuses requests.
+          sudo rm -f /etc/apt/sources.list.d/microsoft-prod.*
           sudo apt-get update
           sudo apt-get install -y clang ninja-build libsdl2-dev libgtk-3-dev libfreetype-dev libvulkan-dev libcurl4-openssl-dev
       - name: Fetch Zelda64Recomp and apply patches
