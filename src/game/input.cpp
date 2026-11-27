@@ -590,6 +590,19 @@ recomp::PortSource recomp::mt_port_source(int port) {
     // Netplay and replays fix the number of connected ports, so every machine boots the same game.
     if (const int net_players = mt_net_forced_players(); net_players > 0) {
         src.present = port < net_players;
+        // MT_NET_PAD picks what drives this PC's player (read through port 0) in netplay:
+        // "keyboard", or a controller number counted from 1. Default: keyboard and every controller.
+        static const char* net_pad = std::getenv("MT_NET_PAD");
+        if (port == 0 && net_pad != nullptr && net_pad[0] != '\0') {
+            if (std::string_view{ net_pad } == "keyboard") {
+                src.keyboard = true;
+                src.controller = -2;
+            }
+            else {
+                src.keyboard = false;
+                src.controller = std::max(0, std::atoi(net_pad) - 1);
+            }
+        }
     }
     return src;
 }

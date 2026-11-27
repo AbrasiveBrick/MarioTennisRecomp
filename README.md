@@ -63,6 +63,8 @@ environment variables when starting the game:
 - Player 1 (host): `MT_NET_HOST=7777 ./MarioTennisRecompiled`. The host's UDP port (7777 here) must be
   reachable by player 2 (forward it on the router for internet play).
 - Player 2: `MT_NET_JOIN=<host address>:7777 ./MarioTennisRecompiled`.
+- Optional: `MT_NET_PAD=keyboard` or `MT_NET_PAD=<n>` (controller number, from 1) picks what controls your
+  player; by default the keyboard and every controller do. Useful for testing two copies on one PC.
 - Optional, host only: `MT_NET_DELAY=<frames>` (default 2). The game runs at 30 frames per second, so 2 frames
   is about 67 ms of input delay; raise it if the game stutters on a slow connection.
 
