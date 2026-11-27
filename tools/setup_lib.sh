@@ -16,7 +16,8 @@ git -C "$Z64" submodule update --init --recursive --depth 1 || git -C "$Z64" sub
 
 if [ ! -e lib ]; then
   case "$(uname -s)" in
-    MINGW*|MSYS*|CYGWIN*) cmd //c mklink /J lib "$(cygpath -w "$Z64/lib")" ;;  # a junction needs no admin rights
+    MINGW*|MSYS*|CYGWIN*) # A junction needs no admin rights.
+      powershell -NoProfile -Command "New-Item -ItemType Junction -Path lib -Target '$(cygpath -w "$Z64/lib")' | Out-Null" ;;
     *) ln -s "$Z64/lib" lib ;;
   esac
 fi
