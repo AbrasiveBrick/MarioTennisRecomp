@@ -760,6 +760,13 @@ int main(int argc, char** argv) {
 #ifdef _WIN32
     // End high resolution timing period.
     timeEndPeriod(1);
+#else
+    // The game's N64 threads are never joined and keep running until the process ends, so running
+    // static destructors under them (renderer, audio, recompiled code tables) can crash on quit.
+    // Saves are already flushed (recomp::start joins the saving thread), so skip the destructors.
+    fflush(stdout);
+    fflush(stderr);
+    std::_Exit(EXIT_SUCCESS);
 #endif
 
     return EXIT_SUCCESS;

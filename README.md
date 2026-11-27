@@ -78,9 +78,10 @@ Requirements: clang, CMake, Ninja, Python 3, Git, and the SDL2, GTK 3, Freetype 
 
 1. Clone [Zelda64Recomp](https://github.com/Zelda64Recomp/Zelda64Recomp) with `--recursive` and symlink its `lib`
    folder here: `ln -s <path to Zelda64Recomp>/lib lib`.
-2. Apply the patches in `patches/` as on Windows (`git apply` inside each of the three folders).
+2. Apply the patches in `patches/` as on Windows (`git apply` inside each of the three folders). With clang 23 or
+   newer, also apply `patches/fmt-clang23.patch` inside `lib/N64ModernRuntime/N64Recomp/lib/fmt`.
 3. Build: `sh tools/build_linux.sh`. The result is `build-live/MarioTennisRecompiled`. Run it with this folder as
-   the working directory.
+   the working directory. To make it smaller, `strip` it (it is built with debug info).
 
 Technical notes on how the port works are in [NOTES.md](NOTES.md).
 

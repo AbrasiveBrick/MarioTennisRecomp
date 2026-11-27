@@ -54,7 +54,7 @@ index 8c8e5d1..dac267f 100644
      // Sort the executable sections by rom address
      std::sort(&sections_info.code_sections[0], &sections_info.code_sections[sections_info.num_code_sections],
 diff --git a/librecomp/src/recomp.cpp b/librecomp/src/recomp.cpp
-index 8a03dbd..cab7e40 100644
+index 8a03dbd..abeafa2 100644
 --- a/librecomp/src/recomp.cpp
 +++ b/librecomp/src/recomp.cpp
 @@ -478,6 +478,12 @@ void run_thread_function(uint8_t* rdram, uint64_t addr, uint64_t sp, uint64_t ar
@@ -81,6 +81,28 @@ index 8a03dbd..cab7e40 100644
                  init(rdram, context, game_entry.entrypoint_address);
                  if (game_entry.on_init_callback) {
                      game_entry.on_init_callback(rdram, context);
+@@ -829,17 +839,8 @@ void recomp::start(
+     ultramodern::join_thread_cleaner_thread();
+     ultramodern::join_saving_thread();
+     
+-    // Free rdram.
+-    bool free_failed;
+-#ifdef _WIN32
+-    // VirtualFree returns zero on failure.
+-    free_failed = (VirtualFree(rdram, 0, MEM_RELEASE) == 0);
+-#else
+-    // munmap returns -1 on failure.
+-    free_failed = (munmap(rdram, allocation_size) == -1);
+-#endif
+-
+-    if (free_failed) {
+-        printf("Failed to free rdram\n");
+-    }
++    // Mario Tennis: rdram is deliberately not freed. The game's N64 threads are still running on host
++    // threads at this point and keep reading it, so unmapping it here crashed on quit. The OS reclaims
++    // it when the process exits.
++    (void)allocation_size;
+ }
 diff --git a/ultramodern/include/ultramodern/config.hpp b/ultramodern/include/ultramodern/config.hpp
 index a8cd8e0..139eb99 100644
 --- a/ultramodern/include/ultramodern/config.hpp
